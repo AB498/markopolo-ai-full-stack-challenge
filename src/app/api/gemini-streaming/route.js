@@ -4,7 +4,7 @@ export async function POST(request) {
     try {
         const { prompt } = await request.json();
         const apiKey = "AIzaSyCWNitg9VDgrumBz2dA1HXJsQ8G76ALBpA";
-        const model = "gemini-2.5-flash";
+        const model = "gemini-2.0-flash";
 
         const stream = new ReadableStream({
             async start(controller) {

@@ -1112,7 +1112,7 @@ export default function CampaignChat() {
                     key={message.id}
                     className={`p-4 rounded-lg ${message.role === 'user'
                       ? 'bg-[var(--message-user-bg)] ml-10 border border-[var(--card-border)]'
-                      : 'bg-[var(--message-assistant-bg)] mr-10 border border-[var(--card-border)]'
+                      : 'bg-[var(--message-assistant-bg)] sm:mr-10 border border-[var(--card-border)]'
                       }`}
                   >
                     <div className="font-medium mb-1">

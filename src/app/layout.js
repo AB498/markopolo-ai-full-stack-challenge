@@ -29,7 +29,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} antialiased font-sans`}
+        className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} antialiased font-sans [font-size:90%] sm:[font-size:100%]`}
       >
         {children}
       </body>
