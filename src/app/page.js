@@ -70,7 +70,6 @@ export default function CampaignChat() {
   const dataSources = [
     'GTM', 'Facebook Pixel', 'Google Ads Tag', 'Facebook Page',
     'Website', 'Shopify', 'CRMs', 'Twitter Page', 'Review Sites',
-    'Ad Managers (Meta, Google, Tiktok, etc.)'
   ];
 
   const channels = [
@@ -612,8 +611,6 @@ export default function CampaignChat() {
 
   const actionButtons = [
     { icon: Search, label: "Search" },
-    { icon: ImageIcon, label: "Image" },
-    { icon: MapPin, label: "Location" },
     { icon: Globe, label: "Web" },
     { icon: Paperclip, label: "Attach" },
     { icon: Mic, label: "Voice" },
@@ -1110,11 +1107,11 @@ export default function CampaignChat() {
       <div className="flex-1 flex flex-col h-full overflow-auto">
         {/* Header */}
         <header className="bg-[var(--background)] border-b border-[var(--search-border)] p-4 flex justify-between items-center">
-          <h1 className="text-2xl font-light text-[var(--foreground)]">Campaign Optimizer - {currentChatName}</h1>
+          <h1 className="text-2xl font-light text-[var(--foreground)] line-clamp-1">Campaign Optimizer - {currentChatName}</h1>
           {messages.length > 0 && (
             <button
               onClick={clearCurrentChat}
-              className="text-sm text-[var(--button-primary)] hover:underline"
+              className="text-sm text-[var(--button-primary)] hover:underline line-clamp-1"
             >
               Clear Chat
             </button>
@@ -1126,15 +1123,8 @@ export default function CampaignChat() {
           {/* Messages Container */}
           <div className="flex-1 overflow-y-auto p-6 h-full overflow-auto">
             {messages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-[var(--sidebar-foreground)]">
-                <div className="text-center max-w-md">
-                  <h3 className="text-lg font-medium mb-2">Welcome to Campaign Optimizer</h3>
-                  <p className="mb-4">Select data sources and channels, then describe your campaign goal to get started.</p>
-                  <div className="text-sm">
-                    <p className="font-medium">Example prompt:</p>
-                    <p className="italic">"Create a campaign to re-engage users who added items to cart but didn't purchase"</p>
-                  </div>
-                </div>
+              <div className="h-full flex flex-col items-center justify-center text-[var(--sidebar-foreground)] text-center">
+                <h3 className="leading-relaxed text-4xl font-medium mb-2">Campaign Optimizer</h3>
               </div>
             ) : (
               <div className="space-y-6 max-w-3xl mx-auto">
@@ -1174,7 +1164,7 @@ export default function CampaignChat() {
               </p>
             )}
             {/* Show some exmaple prompt sentences horizontally scrollable as rounded chip like buttons */}
-            {!messages.length ? <div className="flex overflow-x-auto gap-2 py-2 mb-4 hide-scrollbar horizontal-scroll max-w-3xl mx-auto">
+            {!messages.length ? <div className="flex overflow-x-auto gap-2 py-0 mb-4 hide-scrollbar horizontal-scroll max-w-3xl mx-auto">
               {[
                 "Create a campaign to re-engage users who added items to cart but didn't purchase",
                 "Target users who viewed product pages but didn't add to cart",
