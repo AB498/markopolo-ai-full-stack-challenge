@@ -1,28 +1,35 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0f0f0f;
+  /* Changed from #0f0f0f (near black) to #1a1a1a (dark gray) */
+  --background: #1a1a1a;
   --foreground: #f0f0f0;
-  --search-background: #1a1a1a;
+  /* Changed from #1a1a1a to #2a2a2a */
+  --search-background: #2a2a2a;
+  /* Changed from #0a0a0a to #1f1f1f */
+  --sidebar-background: #1f1f1f;
   --search-border: #2d2d2d;
   --search-focus: #6366f1;
-  --sidebar-background: #0a0a0a;
   --sidebar-border: #2d2d2d;
   --sidebar-foreground: #a3a3a3;
   --sidebar-primary: #6366f1;
-  --sidebar-accent: #1e1e1e;
+  /* Changed from #1e1e1e to #2a2a2a */
+  --sidebar-accent: #2a2a2a;
   --nav-hover: #262626;
-  --card-background: #1a1a1a;
+  /* Changed from #1a1a1a to #2a2a2a */
+  --card-background: #2a2a2a;
   --card-border: #2d2d2d;
-  --input-background: #1a1a1a;
+  --input-background: #2a2a2a;
   --input-border: #2d2d2d;
   --input-focus: #6366f1;
   --button-primary: #6366f1;
   --button-primary-hover: #5858e6;
   --button-secondary: #2d2d2d;
   --button-secondary-hover: #3d3d3d;
-  --message-user-bg: #1e1e1e;
-  --message-assistant-bg: #2d2d2d;
+  /* Changed from #1e1e1e to #2a2a2a */
+  --message-user-bg: #2a2a2a;
+  /* Changed from #2d2d2d to #3a3a3a */
+  --message-assistant-bg: #3a3a3a;
   --selection-bg: #6366f1;
 }
 
