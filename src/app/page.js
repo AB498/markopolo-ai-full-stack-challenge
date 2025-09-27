@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Search, Globe, Grid3X3, User, Plus, Sparkles, Image as ImageIcon, MapPin, Paperclip, Mic } from "lucide-react";
+import { Search, Globe, Grid3X3, User, Plus, Sparkles, Image as ImageIcon, MapPin, Paperclip, Mic, ChevronDown, ChevronUp } from "lucide-react";
 
 export default function CampaignChat() {
   // Available data sources and channels
@@ -15,6 +15,228 @@ export default function CampaignChat() {
     'Email', 'SMS', 'Push', 'WhatsApp', 'Voice', 'Messenger', 'Ads'
   ];
 
+  // Mock data for each source - updated to use the specified JSON format
+  const mockData = {
+    'GTM': {
+      title: 'Google Tag Manager Data',
+      data: [
+        {
+          "userId": "u_101",
+          "eventType": "page_view",
+          "properties": { "url": "/products/electronics", "category": "Electronics" },
+          "contact": {
+            "email": "user101@example.com",
+            "phone": "+1234567890",
+            "pushToken": "tok_gtm_101"
+          },
+          "timestamp": 1695800000000,
+          "source": "GTM"
+        },
+        {
+          "userId": "u_102",
+          "eventType": "click",
+          "properties": { "element": "Add to Cart Button", "product": "Wireless Headphones" },
+          "contact": {
+            "email": "user102@example.com",
+            "phone": "+1234567891",
+            "pushToken": "tok_gtm_102"
+          },
+          "timestamp": 1695800100000,
+          "source": "GTM"
+        }
+      ]
+    },
+    'Facebook Pixel': {
+      title: 'Facebook Pixel Data',
+      data: [
+        {
+          "userId": "u_201",
+          "eventType": "ViewContent",
+          "properties": { "content_name": "Phone Case", "content_category": "Accessories" },
+          "contact": {
+            "email": "fbuser201@example.com",
+            "phone": "+1234567892",
+            "pushToken": "tok_fb_201"
+          },
+          "timestamp": 1695800200000,
+          "source": "Facebook Pixel"
+        },
+        {
+          "userId": "u_202",
+          "eventType": "AddToCart",
+          "properties": { "content_name": "Bluetooth Speaker", "value": 89.99 },
+          "contact": {
+            "email": "fbuser202@example.com",
+            "phone": "+1234567893",
+            "pushToken": "tok_fb_202"
+          },
+          "timestamp": 1695800300000,
+          "source": "Facebook Pixel"
+        }
+      ]
+    },
+    'Google Ads Tag': {
+      title: 'Google Ads Conversion Data',
+      data: [
+        {
+          "userId": "u_301",
+          "eventType": "purchase",
+          "properties": { "conversion_name": "Purchase", "value": 120.50, "currency": "USD" },
+          "contact": {
+            "email": "adsuser301@example.com",
+            "phone": "+1234567894",
+            "pushToken": "tok_ads_301"
+          },
+          "timestamp": 1695800400000,
+          "source": "Google Ads Tag"
+        }
+      ]
+    },
+    'Facebook Page': {
+      title: 'Facebook Page Insights',
+      data: [
+        {
+          "userId": "u_401",
+          "eventType": "page_engagement",
+          "properties": { "action": "like", "post_id": "p_123" },
+          "contact": {
+            "email": "pageuser401@example.com",
+            "phone": "+1234567895",
+            "pushToken": "tok_page_401"
+          },
+          "timestamp": 1695800500000,
+          "source": "Facebook Page"
+        }
+      ]
+    },
+    'Website': {
+      title: 'Website Analytics',
+      data: [
+        {
+          "userId": "u_501",
+          "eventType": "session_start",
+          "properties": { "page": "/home", "referrer": "google.com" },
+          "contact": {
+            "email": "webuser501@example.com",
+            "phone": "+1234567896",
+            "pushToken": "tok_web_501"
+          },
+          "timestamp": 1695800600000,
+          "source": "Website"
+        },
+        {
+          "userId": "u_502",
+          "eventType": "bounce",
+          "properties": { "page": "/products", "time_on_page": 15 },
+          "contact": {
+            "email": "webuser502@example.com",
+            "phone": "+1234567897",
+            "pushToken": "tok_web_502"
+          },
+          "timestamp": 1695800700000,
+          "source": "Website"
+        }
+      ]
+    },
+    'Shopify': {
+      title: 'Shopify Store Data',
+      data: [
+        {
+          "userId": "u_101",
+          "eventType": "cart_abandon",
+          "properties": { "item": "Shoes", "value": 75 },
+          "contact": {
+            "email": "jane@example.com",
+            "phone": "+8801XXXX",
+            "pushToken": "tok_abc"
+          },
+          "timestamp": 1695800000000,
+          "source": "Shopify"
+        },
+        {
+          "userId": "u_602",
+          "eventType": "purchase",
+          "properties": { "item": "Watch", "value": 199.99 },
+          "contact": {
+            "email": "shopifyuser602@example.com",
+            "phone": "+1234567899",
+            "pushToken": "tok_shop_602"
+          },
+          "timestamp": 1695800900000,
+          "source": "Shopify"
+        }
+      ]
+    },
+    'CRMs': {
+      title: 'CRM Customer Data',
+      data: [
+        {
+          "userId": "u_701",
+          "eventType": "lead_create",
+          "properties": { "source": "web_form", "interest": "Product Demo" },
+          "contact": {
+            "email": "crmuser701@example.com",
+            "phone": "+1234567800",
+            "pushToken": "tok_crm_701"
+          },
+          "timestamp": 1695801000000,
+          "source": "CRMs"
+        }
+      ]
+    },
+    'Twitter Page': {
+      title: 'Twitter Analytics',
+      data: [
+        {
+          "userId": "u_801",
+          "eventType": "tweet_engagement",
+          "properties": { "action": "retweet", "tweet_id": "t_456" },
+          "contact": {
+            "email": "twitteruser801@example.com",
+            "phone": "+1234567801",
+            "pushToken": "tok_tw_801"
+          },
+          "timestamp": 1695801100000,
+          "source": "Twitter Page"
+        }
+      ]
+    },
+    'Review Sites': {
+      title: 'Review Site Data',
+      data: [
+        {
+          "userId": "u_901",
+          "eventType": "review_submit",
+          "properties": { "rating": 5, "platform": "Trustpilot" },
+          "contact": {
+            "email": "reviewuser901@example.com",
+            "phone": "+1234567802",
+            "pushToken": "tok_rev_901"
+          },
+          "timestamp": 1695801200000,
+          "source": "Review Sites"
+        }
+      ]
+    },
+    'Ad Managers (Meta, Google, Tiktok, etc.)': {
+      title: 'Ad Manager Performance',
+      data: [
+        {
+          "userId": "u_1001",
+          "eventType": "ad_click",
+          "properties": { "campaign": "Summer Sale", "platform": "Meta" },
+          "contact": {
+            "email": "aduser1001@example.com",
+            "phone": "+1234567803",
+            "pushToken": "tok_ad_1001"
+          },
+          "timestamp": 1695801300000,
+          "source": "Ad Managers"
+        }
+      ]
+    }
+  };
+
   // State management
   const [selectedSources, setSelectedSources] = useState([]);
   const [selectedChannels, setSelectedChannels] = useState([]);
@@ -23,6 +245,8 @@ export default function CampaignChat() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [isPanelHovered, setIsPanelHovered] = useState(false);
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
+  const [expandedSource, setExpandedSource] = useState(null);
+  const [modalData, setModalData] = useState(null);
   const messagesEndRef = useRef(null);
 
   // Auto-scroll to bottom of messages
@@ -46,6 +270,29 @@ export default function CampaignChat() {
     } else if (selectedChannels.length < 4) {
       setSelectedChannels([...selectedChannels, channel]);
     }
+  };
+
+  // Toggle source accordion
+  const toggleSourceAccordion = (source) => {
+    setExpandedSource(expandedSource === source ? null : source);
+  };
+
+  // Open modal with mock data
+  const openDataModal = (source) => {
+    setModalData({
+      source,
+      ...mockData[source]
+    });
+  };
+
+  // Close modal
+  const closeDataModal = () => {
+    setModalData(null);
+  };
+
+  // Format timestamp to readable date
+  const formatTimestamp = (timestamp) => {
+    return new Date(timestamp).toLocaleString();
   };
 
   // Simulate streaming response
@@ -221,24 +468,52 @@ export default function CampaignChat() {
                 {dataSources.map(source => (
                   <div 
                     key={source}
-                    className={`flex items-center justify-between px-3 py-2 rounded-md text-sm ${
+                    className={`rounded-md text-sm ${
                       selectedSources.includes(source)
                         ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
                         : 'bg-[var(--card-background)] border border-[var(--card-border)]'
                     }`}
                   >
-                    <span className="text-[var(--foreground)]">{source}</span>
-                    <button
-                      onClick={() => toggleSource(source)}
-                      className={`px-2 py-1 rounded text-xs ${
-                        selectedSources.includes(source)
-                          ? 'bg-[var(--button-primary)] text-white'
-                          : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
-                      }`}
-                      disabled={!selectedSources.includes(source) && selectedSources.length >= 3}
+                    <div 
+                      className="flex items-center justify-between px-3 py-2 cursor-pointer"
+                      onClick={() => toggleSourceAccordion(source)}
                     >
-                      {selectedSources.includes(source) ? 'Connected' : 'Connect'}
-                    </button>
+                      <span className="text-[var(--foreground)]">{source}</span>
+                      <div className="flex items-center">
+                        {expandedSource === source ? (
+                          <ChevronUp className="h-4 w-4 text-[var(--foreground)]" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-[var(--foreground)]" />
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleSource(source);
+                          }}
+                          className={`ml-2 px-2 py-1 rounded text-xs ${
+                            selectedSources.includes(source)
+                              ? 'bg-[var(--button-primary)] text-white'
+                              : selectedSources.length >= 3 && !selectedSources.includes(source)
+                                ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
+                                : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
+                          }`}
+                          disabled={!selectedSources.includes(source) && selectedSources.length >= 3}
+                        >
+                          {selectedSources.includes(source) ? 'Connected' : 'Connect'}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {expandedSource === source && (
+                      <div className="px-3 pb-2">
+                        <button 
+                          onClick={() => openDataModal(source)}
+                          className="text-xs text-[var(--button-primary)] hover:underline"
+                        >
+                          See Data
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -266,7 +541,9 @@ export default function CampaignChat() {
                       className={`px-2 py-1 rounded text-xs ${
                         selectedChannels.includes(channel)
                           ? 'bg-[var(--button-primary)] text-white'
-                          : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
+                          : selectedChannels.length >= 4 && !selectedChannels.includes(channel)
+                            ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
+                            : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
                       }`}
                       disabled={!selectedChannels.includes(channel) && selectedChannels.length >= 4}
                     >
@@ -416,6 +693,68 @@ export default function CampaignChat() {
           </div>
         </div>
       </div>
+
+      {/* Data Modal */}
+      {modalData && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--card-background)] border border-[var(--card-border)] rounded-lg w-full max-w-4xl max-h-[80vh] flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b border-[var(--card-border)]">
+              <h3 className="text-lg font-semibold text-[var(--foreground)]">{modalData.title}</h3>
+              <button 
+                onClick={closeDataModal}
+                className="text-[var(--sidebar-foreground)] hover:text-[var(--foreground)]"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto flex-1">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-[var(--card-border)]">
+                  <thead className="bg-[var(--sidebar-accent)]">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-[var(--foreground)] uppercase tracking-wider">User ID</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-[var(--foreground)] uppercase tracking-wider">Event Type</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-[var(--foreground)] uppercase tracking-wider">Properties</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-[var(--foreground)] uppercase tracking-wider">Contact</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-[var(--foreground)] uppercase tracking-wider">Timestamp</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-[var(--foreground)] uppercase tracking-wider">Source</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--card-border)]">
+                    {modalData.data.map((event, index) => (
+                      <tr key={index} className="hover:bg-[var(--nav-hover)]">
+                        <td className="px-4 py-2 text-sm text-[var(--foreground)]">{event.userId}</td>
+                        <td className="px-4 py-2 text-sm text-[var(--foreground)]">{event.eventType}</td>
+                        <td className="px-4 py-2 text-sm text-[var(--foreground)]">
+                          {Object.entries(event.properties).map(([key, value]) => (
+                            <div key={key}>{key}: {JSON.stringify(value)}</div>
+                          ))}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-[var(--foreground)]">
+                          <div>Email: {event.contact.email}</div>
+                          <div>Phone: {event.contact.phone}</div>
+                        </td>
+                        <td className="px-4 py-2 text-sm text-[var(--foreground)]">{formatTimestamp(event.timestamp)}</td>
+                        <td className="px-4 py-2 text-sm text-[var(--foreground)]">{event.source}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="p-4 border-t border-[var(--card-border)]">
+              <button
+                onClick={closeDataModal}
+                className="px-4 py-2 bg-[var(--button-primary)] text-white rounded-md hover:bg-[var(--button-primary-hover)]"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
