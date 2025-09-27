@@ -65,6 +65,31 @@ const MarkdownContent = ({ content }) => {
 
 
 export default function CampaignChat() {
+  // Add horizontal scroll support with Shift + mouse wheel
+  // useEffect(() => {
+  //   const handleWheel = (e) => {
+  //     // Check if Shift key is pressed and the event is a vertical scroll
+  //     if (e.shiftKey && e.deltaY !== 0) {
+  //       // Prevent the default vertical scroll behavior
+  //       e.preventDefault();
+        
+  //       // Get the target element
+  //       const target = e.target;
+        
+  //       // Scroll horizontally based on vertical scroll delta
+  //       target.scrollLeft += e.deltaY;
+  //     }
+  //   };
+
+  //   // Add event listener to the document
+  //   document.addEventListener('wheel', handleWheel, { passive: false });
+
+  //   // Clean up the event listener on component unmount
+  //   return () => {
+  //     document.removeEventListener('wheel', handleWheel);
+  //   };
+  // }, []);
+
   // Available data sources and channels
   const dataSources = [
     'GTM', 'Facebook Pixel', 'Google Ads Tag', 'Facebook Page',
@@ -582,7 +607,7 @@ export default function CampaignChat() {
         // Try to parse the error response
         const errorResponse = await res.json().catch(() => ({}));
         let errorMessage = `API request failed with status ${res.status}`;
-        
+
         // Check if there's a specific error message in the response
         if (errorResponse.error && errorResponse.error.message) {
           errorMessage = `${res.status}: ${errorResponse.error.message}`;
@@ -613,7 +638,7 @@ export default function CampaignChat() {
               errorMessage = `API request failed with status ${res.status}: ${res.statusText}`;
           }
         }
-        
+
         throw new Error(errorMessage);
       }
 
@@ -876,8 +901,8 @@ export default function CampaignChat() {
                     <div
                       key={chat.id}
                       className={`flex items-center justify-between px-3 py-2 rounded-md text-sm cursor-pointer ${chat.id === currentChatId
-                          ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
-                          : 'bg-[var(--card-background)] border border-[var(--card-border)] hover:bg-[var(--nav-hover)]'
+                        ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
+                        : 'bg-[var(--card-background)] border border-[var(--card-border)] hover:bg-[var(--nav-hover)]'
                         }`}
                       onClick={() => switchToChat(chat.id)}
                     >
@@ -970,8 +995,8 @@ export default function CampaignChat() {
                     <div
                       key={source}
                       className={`rounded-md text-sm ${selectedSources.includes(source)
-                          ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
-                          : 'bg-[var(--card-background)] border border-[var(--card-border)]'
+                        ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
+                        : 'bg-[var(--card-background)] border border-[var(--card-border)]'
                         }`}
                     >
                       <div
@@ -991,10 +1016,10 @@ export default function CampaignChat() {
                               toggleSource(source);
                             }}
                             className={`ml-2 px-2 py-1 rounded text-xs ${selectedSources.includes(source)
-                                ? 'bg-[var(--button-primary)] text-white'
-                                : selectedSources.length >= 3 && !selectedSources.includes(source)
-                                  ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
-                                  : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
+                              ? 'bg-[var(--button-primary)] text-white'
+                              : selectedSources.length >= 3 && !selectedSources.includes(source)
+                                ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
+                                : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
                               }`}
                             disabled={!selectedSources.includes(source) && selectedSources.length >= 3}
                           >
@@ -1029,18 +1054,18 @@ export default function CampaignChat() {
                     <div
                       key={channel}
                       className={`flex items-center justify-between px-3 py-2 rounded-md text-sm ${selectedChannels.includes(channel)
-                          ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
-                          : 'bg-[var(--card-background)] border border-[var(--card-border)]'
+                        ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
+                        : 'bg-[var(--card-background)] border border-[var(--card-border)]'
                         }`}
                     >
                       <span className="text-[var(--foreground)]">{channel}</span>
                       <button
                         onClick={() => toggleChannel(channel)}
                         className={`px-2 py-1 rounded text-xs ${selectedChannels.includes(channel)
-                            ? 'bg-[var(--button-primary)] text-white'
-                            : selectedChannels.length >= 4 && !selectedChannels.includes(channel)
-                              ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
-                              : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
+                          ? 'bg-[var(--button-primary)] text-white'
+                          : selectedChannels.length >= 4 && !selectedChannels.includes(channel)
+                            ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
+                            : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
                           }`}
                         disabled={!selectedChannels.includes(channel) && selectedChannels.length >= 4}
                       >
@@ -1092,8 +1117,8 @@ export default function CampaignChat() {
                     <div
                       key={chat.id}
                       className={`flex items-center justify-between px-3 py-2 rounded-md text-sm cursor-pointer ${chat.id === currentChatId
-                          ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
-                          : 'bg-[var(--card-background)] border border-[var(--card-border)] hover:bg-[var(--nav-hover)]'
+                        ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
+                        : 'bg-[var(--card-background)] border border-[var(--card-border)] hover:bg-[var(--nav-hover)]'
                         }`}
                       onClick={() => switchToChat(chat.id)}
                     >
@@ -1144,8 +1169,8 @@ export default function CampaignChat() {
                     <div
                       key={source}
                       className={`rounded-md text-sm ${selectedSources.includes(source)
-                          ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
-                          : 'bg-[var(--card-background)] border border-[var(--card-border)]'
+                        ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
+                        : 'bg-[var(--card-background)] border border-[var(--card-border)]'
                         }`}
                     >
                       <div
@@ -1165,10 +1190,10 @@ export default function CampaignChat() {
                               toggleSource(source);
                             }}
                             className={`ml-2 px-2 py-1 rounded text-xs ${selectedSources.includes(source)
-                                ? 'bg-[var(--button-primary)] text-white'
-                                : selectedSources.length >= 3 && !selectedSources.includes(source)
-                                  ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
-                                  : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
+                              ? 'bg-[var(--button-primary)] text-white'
+                              : selectedSources.length >= 3 && !selectedSources.includes(source)
+                                ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
+                                : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
                               }`}
                             disabled={!selectedSources.includes(source) && selectedSources.length >= 3}
                           >
@@ -1203,18 +1228,18 @@ export default function CampaignChat() {
                     <div
                       key={channel}
                       className={`flex items-center justify-between px-3 py-2 rounded-md text-sm ${selectedChannels.includes(channel)
-                          ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
-                          : 'bg-[var(--card-background)] border border-[var(--card-border)]'
+                        ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
+                        : 'bg-[var(--card-background)] border border-[var(--card-border)]'
                         }`}
                     >
                       <span className="text-[var(--foreground)]">{channel}</span>
                       <button
                         onClick={() => toggleChannel(channel)}
                         className={`px-2 py-1 rounded text-xs ${selectedChannels.includes(channel)
-                            ? 'bg-[var(--button-primary)] text-white'
-                            : selectedChannels.length >= 4 && !selectedChannels.includes(channel)
-                              ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
-                              : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
+                          ? 'bg-[var(--button-primary)] text-white'
+                          : selectedChannels.length >= 4 && !selectedChannels.includes(channel)
+                            ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
+                            : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
                           }`}
                         disabled={!selectedChannels.includes(channel) && selectedChannels.length >= 4}
                       >
@@ -1294,8 +1319,8 @@ export default function CampaignChat() {
               <button
                 key={item.id}
                 className={`w-10 h-10 p-0 flex flex-col items-center justify-center gap-1 rounded-full transition-colors ${activeNavPanel === item.id
-                    ? "text-[var(--sidebar-primary)] bg-[var(--sidebar-accent)]"
-                    : "text-[var(--sidebar-foreground)] hover:bg-[var(--nav-hover)]"
+                  ? "text-[var(--sidebar-primary)] bg-[var(--sidebar-accent)]"
+                  : "text-[var(--sidebar-foreground)] hover:bg-[var(--nav-hover)]"
                   }`}
                 onClick={() => setActiveNavPanel(item.id)}
                 onMouseEnter={() => setActiveNavPanel(item.id)}
@@ -1362,8 +1387,8 @@ export default function CampaignChat() {
                   <div
                     key={message.id}
                     className={`p-4 rounded-lg ${message.role === 'user'
-                        ? 'bg-[var(--message-user-bg)] ml-10 border border-[var(--card-border)]'
-                        : 'bg-[var(--message-assistant-bg)] mr-10 border border-[var(--card-border)]'
+                      ? 'bg-[var(--message-user-bg)] ml-10 border border-[var(--card-border)]'
+                      : 'bg-[var(--message-assistant-bg)] mr-10 border border-[var(--card-border)]'
                       }`}
                   >
                     <div className="font-medium mb-1">
@@ -1388,6 +1413,30 @@ export default function CampaignChat() {
 
           {/* Input Area */}
           <div className="border-t border-[var(--search-border)] p-4">
+            {(selectedSources.length === 0 || selectedChannels.length === 0) && (
+              <p className="text-sm text-red-400 mb-2 text-center max-w-3xl mx-auto">
+                Please select at least one data source and one channel to continue.
+              </p>
+            )}
+            {/* Show some exmaple prompt sentences horizontally scrollable as rounded chip like buttons */}
+            {!messages.length ? <div className="flex overflow-x-auto gap-2 py-2 mb-4 hide-scrollbar horizontal-scroll max-w-3xl mx-auto">
+              {[
+                "Create a campaign to re-engage users who added items to cart but didn't purchase",
+                "Target users who viewed product pages but didn't add to cart",
+                "Generate a campaign for users who haven't purchased in 30 days",
+                "Create an upsell campaign for recent purchasers",
+                "Build a campaign targeting high-value customers"
+              ].map((prompt, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => setInputValue(prompt)}
+                  className="flex-shrink-0 px-4 py-2 bg-[var(--card-background)] border border-[var(--card-border)] rounded-full text-sm hover:bg-[var(--button-primary)] hover:text-white transition-colors whitespace-nowrap"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div> : null}
             <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
               <div className="relative bg-[var(--input-background)] border border-[var(--input-border)] rounded-xl p-4 focus-within:border-[var(--input-focus)] transition-colors">
                 <input
@@ -1408,10 +1457,10 @@ export default function CampaignChat() {
                         key={action.label}
                         type="button"
                         className={`h-8 w-8 p-0 rounded-full flex items-center justify-center transition-colors ${action.variant === "primary"
-                            ? "bg-[var(--button-primary)] text-white hover:bg-[var(--button-primary-hover)]"
-                            : action.variant === "accent"
-                              ? "text-[var(--button-primary)] hover:bg-[var(--button-primary)]/20"
-                              : "text-[var(--sidebar-foreground)] hover:bg-[var(--nav-hover)]"
+                          ? "bg-[var(--button-primary)] text-white hover:bg-[var(--button-primary-hover)]"
+                          : action.variant === "accent"
+                            ? "text-[var(--button-primary)] hover:bg-[var(--button-primary)]/20"
+                            : "text-[var(--sidebar-foreground)] hover:bg-[var(--nav-hover)]"
                           }`}
                       >
                         <Icon className="h-4 w-4" />
@@ -1429,12 +1478,6 @@ export default function CampaignChat() {
                 </div>
               </div>
             </form>
-
-            {(selectedSources.length === 0 || selectedChannels.length === 0) && (
-              <p className="text-sm text-red-400 mt-2 text-center">
-                Please select at least one data source and one channel to continue.
-              </p>
-            )}
           </div>
         </div>
       </div>
@@ -1455,7 +1498,7 @@ export default function CampaignChat() {
               </button>
             </div>
             <div className="p-4 overflow-y-auto flex-1">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto horizontal-scroll">
                 <table className="min-w-full divide-y divide-[var(--card-border)]">
                   <thead className="bg-[var(--sidebar-accent)]">
                     <tr>
