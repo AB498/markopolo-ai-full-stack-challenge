@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Search, Globe, Grid3X3, User, Plus, Sparkles, Image as ImageIcon, MapPin, Paperclip, Mic, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, Globe, Grid3X3, User, Plus, Sparkles, Image as ImageIcon, MapPin, Paperclip, Mic, ChevronDown, ChevronUp, Trash2, Edit3 } from "lucide-react";
 
 export default function CampaignChat() {
   // Available data sources and channels
@@ -238,6 +238,8 @@ export default function CampaignChat() {
   };
 
   // State management
+  const [chatHistories, setChatHistories] = useState([]); // Store all chat histories
+  const [currentChatId, setCurrentChatId] = useState(null); // ID of currently active chat
   const [selectedSources, setSelectedSources] = useState([]);
   const [selectedChannels, setSelectedChannels] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -247,38 +249,70 @@ export default function CampaignChat() {
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const [expandedSource, setExpandedSource] = useState(null);
   const [modalData, setModalData] = useState(null);
+  const [editingChatId, setEditingChatId] = useState(null);
+  const [editingChatName, setEditingChatName] = useState('');
   const messagesEndRef = useRef(null);
 
-  // Load chat history from localStorage on component mount
+  // Load chat histories from localStorage on component mount
   useEffect(() => {
-    const savedMessages = localStorage.getItem('campaignChatMessages');
-    if (savedMessages) {
-      setMessages(JSON.parse(savedMessages));
+    const savedChatHistories = localStorage.getItem('campaignChatHistories');
+    if (savedChatHistories) {
+      const parsedHistories = JSON.parse(savedChatHistories);
+      setChatHistories(parsedHistories);
+      
+      // If there are chat histories, set the first one as current
+      if (parsedHistories.length > 0 && !currentChatId) {
+        setCurrentChatId(parsedHistories[0].id);
+        setSelectedSources(parsedHistories[0].sources || []);
+        setSelectedChannels(parsedHistories[0].channels || []);
+        setMessages(parsedHistories[0].messages || []);
+      }
+    } else {
+      // Initialize with an empty chat history
+      const newChat = {
+        id: Date.now().toString(),
+        name: 'New Chat',
+        sources: [],
+        channels: [],
+        messages: [],
+        createdAt: new Date().toISOString()
+      };
+      setChatHistories([newChat]);
+      setCurrentChatId(newChat.id);
     }
     
-    const savedSources = localStorage.getItem('selectedSources');
-    if (savedSources) {
-      setSelectedSources(JSON.parse(savedSources));
-    }
-    
-    const savedChannels = localStorage.getItem('selectedChannels');
-    if (savedChannels) {
-      setSelectedChannels(JSON.parse(savedChannels));
+    // Load selections from localStorage if no current chat
+    if (!currentChatId) {
+      const savedSources = localStorage.getItem('selectedSources');
+      if (savedSources) {
+        setSelectedSources(JSON.parse(savedSources));
+      }
+      
+      const savedChannels = localStorage.getItem('selectedChannels');
+      if (savedChannels) {
+        setSelectedChannels(JSON.parse(savedChannels));
+      }
     }
   }, []);
 
-  // Save chat history to localStorage whenever messages change
+  // Save chat histories to localStorage whenever they change
   useEffect(() => {
-    if (messages.length > 0) {
-      localStorage.setItem('campaignChatMessages', JSON.stringify(messages));
+    if (chatHistories.length > 0) {
+      localStorage.setItem('campaignChatHistories', JSON.stringify(chatHistories));
     }
-  }, [messages]);
+  }, [chatHistories]);
 
-  // Save selections to localStorage
+  // Update current chat when currentChatId changes
   useEffect(() => {
-    localStorage.setItem('selectedSources', JSON.stringify(selectedSources));
-    localStorage.setItem('selectedChannels', JSON.stringify(selectedChannels));
-  }, [selectedSources, selectedChannels]);
+    if (currentChatId) {
+      const currentChat = chatHistories.find(chat => chat.id === currentChatId);
+      if (currentChat) {
+        setSelectedSources(currentChat.sources || []);
+        setSelectedChannels(currentChat.channels || []);
+        setMessages(currentChat.messages || []);
+      }
+    }
+  }, [currentChatId, chatHistories]);
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
@@ -287,19 +321,49 @@ export default function CampaignChat() {
 
   // Toggle data source selection
   const toggleSource = (source) => {
+    let newSources;
     if (selectedSources.includes(source)) {
-      setSelectedSources(selectedSources.filter(s => s !== source));
+      newSources = selectedSources.filter(s => s !== source);
     } else if (selectedSources.length < 3) {
-      setSelectedSources([...selectedSources, source]);
+      newSources = [...selectedSources, source];
+    } else {
+      newSources = selectedSources;
+    }
+    
+    // Update selected sources in state
+    setSelectedSources(newSources);
+    
+    // Update selected sources in current chat history
+    if (currentChatId) {
+      setChatHistories(prev => prev.map(chat => 
+        chat.id === currentChatId 
+          ? { ...chat, sources: newSources } 
+          : chat
+      ));
     }
   };
 
   // Toggle channel selection
   const toggleChannel = (channel) => {
+    let newChannels;
     if (selectedChannels.includes(channel)) {
-      setSelectedChannels(selectedChannels.filter(c => c !== channel));
+      newChannels = selectedChannels.filter(c => c !== channel);
     } else if (selectedChannels.length < 4) {
-      setSelectedChannels([...selectedChannels, channel]);
+      newChannels = [...selectedChannels, channel];
+    } else {
+      newChannels = selectedChannels;
+    }
+    
+    // Update selected channels in state
+    setSelectedChannels(newChannels);
+    
+    // Update selected channels in current chat history
+    if (currentChatId) {
+      setChatHistories(prev => prev.map(chat => 
+        chat.id === currentChatId 
+          ? { ...chat, channels: newChannels } 
+          : chat
+      ));
     }
   };
 
@@ -442,29 +506,69 @@ export default function CampaignChat() {
     
     // Add user message
     const userMsg = { id: Date.now(), role: 'user', content: userMessage };
-    setMessages(prev => [...prev, userMsg]);
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
+    
+    // Update messages in current chat history
+    if (currentChatId) {
+      setChatHistories(prev => prev.map(chat => 
+        chat.id === currentChatId 
+          ? { ...chat, messages: newMessages } 
+          : chat
+      ));
+    }
     
     // Add initial assistant message
     const assistantMsgId = Date.now() + 1;
     const assistantMsg = { id: assistantMsgId, role: 'assistant', content: '', isGenerating: true };
-    setMessages(prev => [...prev, assistantMsg]);
+    const updatedMessages = [...newMessages, assistantMsg];
+    setMessages(updatedMessages);
+    
+    // Update messages in current chat history
+    if (currentChatId) {
+      setChatHistories(prev => prev.map(chat => 
+        chat.id === currentChatId 
+          ? { ...chat, messages: updatedMessages } 
+          : chat
+      ));
+    }
     
     try {
       const response = await callGeminiAPI(userMessage);
       
       // Update assistant message with the response
-      setMessages(prev => prev.map(msg => 
+      const finalMessages = updatedMessages.map(msg => 
         msg.id === assistantMsgId 
           ? { ...msg, content: response, isGenerating: false }
           : msg
-      ));
+      );
+      setMessages(finalMessages);
+      
+      // Update messages in current chat history
+      if (currentChatId) {
+        setChatHistories(prev => prev.map(chat => 
+          chat.id === currentChatId 
+            ? { ...chat, messages: finalMessages } 
+            : chat
+        ));
+      }
     } catch (error) {
       // Handle error case
-      setMessages(prev => prev.map(msg => 
+      const errorMessages = updatedMessages.map(msg => 
         msg.id === assistantMsgId 
           ? { ...msg, content: `Error: ${error.message}. Please try again.`, isGenerating: false }
           : msg
-      ));
+      );
+      setMessages(errorMessages);
+      
+      // Update messages in current chat history
+      if (currentChatId) {
+        setChatHistories(prev => prev.map(chat => 
+          chat.id === currentChatId 
+            ? { ...chat, messages: errorMessages } 
+            : chat
+        ));
+      }
     }
     
     setIsGenerating(false);
@@ -479,10 +583,87 @@ export default function CampaignChat() {
     }
   };
 
-  // Clear chat history
-  const clearChat = () => {
+  // Clear current chat history
+  const clearCurrentChat = () => {
     setMessages([]);
-    localStorage.removeItem('campaignChatMessages');
+    
+    // Update messages in current chat history
+    if (currentChatId) {
+      setChatHistories(prev => prev.map(chat => 
+        chat.id === currentChatId 
+          ? { ...chat, messages: [] } 
+          : chat
+      ));
+    }
+  };
+
+  // Create a new chat
+  const createNewChat = () => {
+    const newChat = {
+      id: Date.now().toString(),
+      name: 'New Chat',
+      sources: [],
+      channels: [],
+      messages: [],
+      createdAt: new Date().toISOString()
+    };
+    
+    setChatHistories(prev => [...prev, newChat]);
+    setCurrentChatId(newChat.id);
+    setSelectedSources([]);
+    setSelectedChannels([]);
+    setMessages([]);
+  };
+
+  // Switch to a different chat
+  const switchToChat = (chatId) => {
+    setCurrentChatId(chatId);
+  };
+
+  // Delete a chat
+  const deleteChat = (chatId, e) => {
+    e.stopPropagation();
+    
+    if (chatHistories.length <= 1) {
+      // If this is the last chat, clear it instead of deleting
+      clearCurrentChat();
+      return;
+    }
+    
+    const updatedChats = chatHistories.filter(chat => chat.id !== chatId);
+    setChatHistories(updatedChats);
+    
+    // If we deleted the current chat, switch to the first available chat
+    if (chatId === currentChatId && updatedChats.length > 0) {
+      setCurrentChatId(updatedChats[0].id);
+    }
+  };
+
+  // Start editing a chat name
+  const startEditingChatName = (chatId, currentName, e) => {
+    e.stopPropagation();
+    setEditingChatId(chatId);
+    setEditingChatName(currentName);
+  };
+
+  // Save edited chat name
+  const saveEditedChatName = (chatId) => {
+    if (editingChatName.trim()) {
+      setChatHistories(prev => prev.map(chat => 
+        chat.id === chatId 
+          ? { ...chat, name: editingChatName.trim() } 
+          : chat
+      ));
+    }
+    setEditingChatId(null);
+    setEditingChatName('');
+  };
+
+  // Handle Enter key in chat name editing
+  const handleEditKeyDown = (chatId, e) => {
+    if (e.key === 'Enter') {
+      saveEditedChatName(chatId);
+    }
   };
 
   const actionButtons = [
@@ -504,8 +685,11 @@ export default function CampaignChat() {
   // Determine if panel should be visible
   const isPanelVisible = isSidebarHovered || isPanelHovered;
 
+  // Get current chat name for display
+  const currentChatName = chatHistories.find(chat => chat.id === currentChatId)?.name || 'New Chat';
+
   return (
-    <div className="flex min-h-screen bg-[var(--background)] text-[var(--foreground)] font-sans">
+    <div className="flex h-screen bg-[var(--background)] text-[var(--foreground)] font-sans">
       {/* Sidebar */}
       <div 
         className="flex flex-col h-screen w-16 bg-[var(--sidebar-background)] border-r border-[var(--sidebar-border)] relative z-20"
@@ -519,7 +703,10 @@ export default function CampaignChat() {
 
         {/* Add button */}
         <div className="p-3">
-          <button className="w-10 h-10 p-0 rounded-full hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] flex items-center justify-center transition-colors">
+          <button 
+            className="w-10 h-10 p-0 rounded-full hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] flex items-center justify-center transition-colors"
+            onClick={createNewChat}
+          >
             <Plus className="h-5 w-5" />
           </button>
         </div>
@@ -562,6 +749,67 @@ export default function CampaignChat() {
           <h2 className="text-lg font-semibold mb-4 text-[var(--sidebar-primary)]">Configuration</h2>
           
           <div className="flex-1 overflow-y-auto">
+            {/* Chat History Section */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-medium text-[var(--foreground)]">Chat History</h3>
+                <button 
+                  onClick={createNewChat}
+                  className="text-xs text-[var(--button-primary)] hover:underline"
+                >
+                  New Chat
+                </button>
+              </div>
+              <div className="space-y-1 max-h-40 overflow-y-auto">
+                {chatHistories.map(chat => (
+                  <div 
+                    key={chat.id}
+                    className={`flex items-center justify-between px-3 py-2 rounded-md text-sm cursor-pointer ${
+                      chat.id === currentChatId
+                        ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
+                        : 'bg-[var(--card-background)] border border-[var(--card-border)] hover:bg-[var(--nav-hover)]'
+                    }`}
+                    onClick={() => switchToChat(chat.id)}
+                  >
+                    {editingChatId === chat.id ? (
+                      <input
+                        type="text"
+                        value={editingChatName}
+                        onChange={(e) => setEditingChatName(e.target.value)}
+                        onBlur={() => saveEditedChatName(chat.id)}
+                        onKeyDown={(e) => handleEditKeyDown(chat.id, e)}
+                        autoFocus
+                        className="bg-transparent border-b border-[var(--input-border)] focus:outline-none w-full"
+                      />
+                    ) : (
+                      <div className="flex items-center">
+                        <span 
+                          className="text-[var(--foreground)] truncate max-w-[180px]"
+                          onDoubleClick={(e) => startEditingChatName(chat.id, chat.name, e)}
+                        >
+                          {chat.name}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center">
+                      <button
+                        onClick={(e) => startEditingChatName(chat.id, chat.name, e)}
+                        className="p-1 text-[var(--sidebar-foreground)] hover:text-[var(--foreground)]"
+                      >
+                        <Edit3 className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={(e) => deleteChat(chat.id, e)}
+                        className="p-1 text-[var(--sidebar-foreground)] hover:text-red-500"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
             {/* Data Sources */}
             <div className="mb-6">
               <h3 className="font-medium mb-2 text-[var(--foreground)]">Data Sources (Select up to 3)</h3>
@@ -693,13 +941,13 @@ export default function CampaignChat() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col h-full overflow-auto">
         {/* Header */}
         <header className="bg-[var(--background)] border-b border-[var(--search-border)] p-4 flex justify-between items-center">
-          <h1 className="text-2xl font-light text-[var(--foreground)]">Campaign Optimizer</h1>
+          <h1 className="text-2xl font-light text-[var(--foreground)]">Campaign Optimizer - {currentChatName}</h1>
           {messages.length > 0 && (
             <button 
-              onClick={clearChat}
+              onClick={clearCurrentChat}
               className="text-sm text-[var(--button-primary)] hover:underline"
             >
               Clear Chat
@@ -708,9 +956,9 @@ export default function CampaignChat() {
         </header>
 
         {/* Chat Interface */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col h-full overflow-auto">
           {/* Messages Container */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-6 h-full overflow-auto">
             {messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-[var(--sidebar-foreground)]">
                 <div className="text-center max-w-md">
