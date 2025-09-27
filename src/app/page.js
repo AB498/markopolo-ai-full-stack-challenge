@@ -520,6 +520,11 @@ export default function CampaignChat() {
 
   // Create a new chat
   const createNewChat = () => {
+    // Don't allow new chat creation if current chat has no messages
+    if (messages.length === 0) {
+      return;
+    }
+
     const newChat = {
       id: Date.now().toString(),
       name: 'New Chat',
@@ -653,7 +658,9 @@ export default function CampaignChat() {
                   <h3 className="font-medium text-[var(--foreground)]">Recent Chats</h3>
                   <button
                     onClick={createNewChat}
-                    className="text-xs text-[var(--button-primary)] hover:underline"
+                    className={`text-xs hover:underline ${messages.length === 0 ? 'text-[var(--sidebar-foreground)] cursor-not-allowed' : 'text-[var(--button-primary)]'}`}
+                    disabled={messages.length === 0}
+                    title={messages.length === 0 ? "Add a message to current chat before creating a new one" : ""}
                   >
                     New Chat
                   </button>
@@ -1095,8 +1102,10 @@ export default function CampaignChat() {
         {/* Add button */}
         <div className="p-3">
           <button
-            className="w-10 h-10 p-0 rounded-full hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] flex items-center justify-center transition-colors"
+            className={`w-10 h-10 p-0 rounded-full hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] flex items-center justify-center transition-colors ${messages.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={createNewChat}
+            disabled={messages.length === 0}
+            title={messages.length === 0 ? "Add a message to current chat before creating a new one" : "Create new chat"}
           >
             <Plus className="h-5 w-5" />
           </button>
@@ -1145,7 +1154,7 @@ export default function CampaignChat() {
       <div className="flex-1 flex flex-col h-full overflow-auto">
         {/* Header */}
         <header className="bg-[var(--background)] border-b border-[var(--search-border)] p-4 flex justify-between items-center">
-          <h1 className="text-2xl font-light text-[var(--foreground)] line-clamp-1">Campaign Optimizer - {currentChatName}</h1>
+          <h1 className="text-2xl font-semibold text-[var(--foreground)] line-clamp-1">Campaign Optimizer - {currentChatName}</h1>
           {messages.length > 0 && (
             <button
               onClick={clearCurrentChat}
