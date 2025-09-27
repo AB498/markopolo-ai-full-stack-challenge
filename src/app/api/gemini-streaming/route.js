@@ -4,7 +4,7 @@ export async function POST(request) {
     try {
         const { prompt } = await request.json();
         const apiKey = "AIzaSyCWNitg9VDgrumBz2dA1HXJsQ8G76ALBpA";
-        const model = "gemini-2.0-flash";
+        const model = "gemini-2.5-flash";
 
         const stream = new ReadableStream({
             async start(controller) {
@@ -37,13 +37,13 @@ export async function POST(request) {
                         while (buffer.length > 0) {
                             let startPos = buffer.startsWith('[') ? 1 : 0;
                             let endPos = -1;
-                            
+
                             // Look for complete JSON objects
                             for (let i = startPos; i < buffer.length - 1; i++) {
                                 if (buffer[i] === '}') {
                                     let j = i + 1;
                                     // Skip whitespace
-                                    while (j < buffer.length && /\s/.test(buffer[j])) j++;
+                                    while (j < buffer.length && (buffer[j] === ' ' || buffer[j] === '\n' || buffer[j] === '\r' || buffer[j] === '\t')) j++;
                                     // Check if we have a complete object
                                     if (j < buffer.length && (buffer[j] === ',' || buffer[j] === ']')) {
                                         try {
@@ -72,7 +72,7 @@ export async function POST(request) {
 
                                 // Move buffer position past the processed object
                                 let j = endPos + 1;
-                                while (j < buffer.length && /[\s,]/.test(buffer[j])) j++;
+                                while (j < buffer.length && (buffer[j] === ' ' || buffer[j] === '\n' || buffer[j] === '\r' || buffer[j] === '\t' || buffer[j] === ',')) j++;
                                 buffer = buffer.substring(j);
                             } else {
                                 // No complete object found, wait for more data

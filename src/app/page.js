@@ -7,64 +7,6 @@ import hljs from 'highlight.js';
 import 'highlight.js/styles/atom-one-dark.min.css';
 import { mockData } from './mockData';
 
-// Component to render markdown content
-const MarkdownContent = ({ content }) => {
-  const [renderedContent, setRenderedContent] = useState('');
-
-  useEffect(() => {
-    const parseMarkdown = async () => {
-      try {
-        // Configure marked with highlight.js for each parse
-        marked.setOptions({
-          highlight: function (code, lang) {
-            if (lang && hljs.getLanguage(lang)) {
-              try {
-                const highlighted = hljs.highlight(code, { language: lang });
-                // Add language class to the code element for CSS styling
-                return `<code class="language-${lang} hljs">${highlighted.value}</code>`;
-              } catch (error) {
-                console.error('Highlighting error:', error);
-              }
-            }
-            // Fallback to auto-detection
-            try {
-              const highlighted = hljs.highlightAuto(code);
-              return `<code class="hljs ${highlighted.language ? `language-${highlighted.language}` : ''}">${highlighted.value}</code>`;
-            } catch (error) {
-              console.error('Auto-highlighting error:', error);
-              return `<code class="hljs">${code}</code>`;
-            }
-          },
-          breaks: true,
-          gfm: true
-        });
-
-        const html = marked(content);
-        setRenderedContent(html);
-
-        // Re-highlight after setting content
-        setTimeout(() => {
-          if (typeof window !== 'undefined') {
-            hljs.highlightAll();
-          }
-        }, 10);
-      } catch (error) {
-        console.error('Markdown parsing error:', error);
-        setRenderedContent(`<div>${content}</div>`); // Fallback to raw content in a div
-      }
-    };
-    parseMarkdown();
-  }, [content]);
-
-  return (
-    <div
-      className="markdown-content"
-      dangerouslySetInnerHTML={{ __html: renderedContent }}
-    />
-  );
-};
-
-
 export default function CampaignChat() {
   // Available data sources and channels
   const dataSources = [
@@ -375,11 +317,11 @@ export default function CampaignChat() {
     // Add initial assistant message
     const assistantMsgId = Date.now() + 1;
     const assistantMsg = { id: assistantMsgId, role: 'assistant', content: '', isGenerating: true };
-    
+
     // Update messages with the initial assistant message
     setMessages(prevMessages => {
       const updatedMessages = [...prevMessages, assistantMsg];
-      
+
       // Update messages in current chat history
       if (currentChatId) {
         setChatHistories(prev => {
@@ -390,23 +332,23 @@ export default function CampaignChat() {
           );
         });
       }
-      
+
       return updatedMessages;
     });
 
     try {
       const reader = await callGeminiAPIStream(userMessage);
       const decoder = new TextDecoder();
-      
+
       let accumulatedContent = '';
-      
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        
+
         const chunk = decoder.decode(value, { stream: true });
         accumulatedContent = accumulatedContent + chunk;
-        
+
         // Update assistant message with the accumulated content
         setMessages(prevMessages => {
           const updatedMessages = prevMessages.map(msg =>
@@ -414,7 +356,7 @@ export default function CampaignChat() {
               ? { ...msg, content: accumulatedContent }
               : msg
           );
-          
+
           // Update messages in current chat history
           if (currentChatId) {
             setChatHistories(prev => {
@@ -425,11 +367,11 @@ export default function CampaignChat() {
               );
             });
           }
-          
+
           return updatedMessages;
         });
       }
-      
+
       // Final update to mark as not generating
       setMessages(prevMessages => {
         const finalMessages = prevMessages.map(msg =>
@@ -437,7 +379,7 @@ export default function CampaignChat() {
             ? { ...msg, content: accumulatedContent, isGenerating: false }
             : msg
         );
-        
+
         // Update messages in current chat history
         if (currentChatId) {
           setChatHistories(prev => {
@@ -448,7 +390,7 @@ export default function CampaignChat() {
             );
           });
         }
-        
+
         return finalMessages;
       });
     } catch (error) {
@@ -459,7 +401,7 @@ export default function CampaignChat() {
             ? { ...msg, content: `Error: ${error.message}. Please try again.`, isGenerating: false }
             : msg
         );
-        
+
         // Update messages in current chat history
         if (currentChatId) {
           setChatHistories(prev => {
@@ -470,7 +412,7 @@ export default function CampaignChat() {
             );
           });
         }
-        
+
         return errorMessages;
       });
     }
@@ -627,7 +569,7 @@ export default function CampaignChat() {
           <>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-[var(--sidebar-primary)]">Chat History</h2>
-              <button 
+              <button
                 className="md:hidden text-[var(--sidebar-foreground)] hover:text-[var(--foreground)]"
                 onClick={() => setIsPanelHovered(false)}
               >
@@ -740,7 +682,7 @@ export default function CampaignChat() {
           <>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-[var(--sidebar-primary)]">Configuration</h2>
-              <button 
+              <button
                 className="md:hidden text-[var(--sidebar-foreground)] hover:text-[var(--foreground)]"
                 onClick={() => setIsPanelHovered(false)}
               >
@@ -850,7 +792,7 @@ export default function CampaignChat() {
           <>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-[var(--sidebar-primary)]">Campaigns</h2>
-              <button 
+              <button
                 className="md:hidden text-[var(--sidebar-foreground)] hover:text-[var(--foreground)]"
                 onClick={() => setIsPanelHovered(false)}
               >
@@ -873,7 +815,7 @@ export default function CampaignChat() {
           <>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-[var(--sidebar-primary)]">Configuration</h2>
-              <button 
+              <button
                 className="md:hidden text-[var(--sidebar-foreground)] hover:text-[var(--foreground)]"
                 onClick={() => setIsPanelHovered(false)}
               >
@@ -1178,7 +1120,10 @@ export default function CampaignChat() {
                     </div>
                     <div className="whitespace-pre-wrap text-[var(--foreground)]">
                       {message.role === 'assistant' ? (
-                        <MarkdownContent content={message.content} />
+                        <div
+                          className="markdown-content overflow-x-hidden"
+                          dangerouslySetInnerHTML={{ __html: marked(message.content) }}
+                        />
                       ) : (
                         <>{message.content}</>
                       )}
@@ -1212,7 +1157,16 @@ export default function CampaignChat() {
                 <button
                   key={index}
                   type="button"
-                  onClick={() => setInputValue(prompt)}
+                  onClick={() => {
+                    setInputValue(prompt);
+                    // Focus the input field after setting the value
+                    setTimeout(() => {
+                      const inputElement = document.querySelector('input[type="text"]');
+                      if (inputElement) {
+                        inputElement.focus();
+                      }
+                    }, 0);
+                  }}
                   className="flex-shrink-0 px-4 py-2 bg-[var(--card-background)] border border-[var(--card-border)] rounded-full text-sm hover:bg-[var(--button-primary)] hover:text-white transition-colors whitespace-nowrap"
                 >
                   {prompt}
