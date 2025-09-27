@@ -635,7 +635,17 @@ export default function CampaignChat() {
       case 'home':
         return (
           <>
-            <h2 className="text-lg font-semibold mb-4 text-[var(--sidebar-primary)]">Chat History</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-[var(--sidebar-primary)]">Chat History</h2>
+              <button 
+                className="md:hidden text-[var(--sidebar-foreground)] hover:text-[var(--foreground)]"
+                onClick={() => setIsPanelHovered(false)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
             <div className="flex-1 overflow-y-auto">
               {/* Chat History Section */}
               <div className="mb-6">
@@ -736,8 +746,17 @@ export default function CampaignChat() {
       case 'configurations':
         return (
           <>
-            <h2 className="text-lg font-semibold mb-4 text-[var(--sidebar-primary)]">Configuration</h2>
-
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-[var(--sidebar-primary)]">Configuration</h2>
+              <button 
+                className="md:hidden text-[var(--sidebar-foreground)] hover:text-[var(--foreground)]"
+                onClick={() => setIsPanelHovered(false)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
             <div className="flex-1 overflow-y-auto">
               {/* Data Sources */}
               <div className="mb-6">
@@ -837,7 +856,17 @@ export default function CampaignChat() {
       case 'campaigns':
         return (
           <>
-            <h2 className="text-lg font-semibold mb-4 text-[var(--sidebar-primary)]">Campaigns</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-[var(--sidebar-primary)]">Campaigns</h2>
+              <button 
+                className="md:hidden text-[var(--sidebar-foreground)] hover:text-[var(--foreground)]"
+                onClick={() => setIsPanelHovered(false)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
             <div className="flex-1 overflow-y-auto">
               <div className="text-center py-10">
                 <Megaphone className="h-12 w-12 text-[var(--sidebar-foreground)] mx-auto mb-4" />
@@ -850,8 +879,17 @@ export default function CampaignChat() {
       default:
         return (
           <>
-            <h2 className="text-lg font-semibold mb-4 text-[var(--sidebar-primary)]">Configuration</h2>
-
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-[var(--sidebar-primary)]">Configuration</h2>
+              <button 
+                className="md:hidden text-[var(--sidebar-foreground)] hover:text-[var(--foreground)]"
+                onClick={() => setIsPanelHovered(false)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
             <div className="flex-1 overflow-y-auto">
               {/* Chat History Section */}
               <div className="mb-6">
