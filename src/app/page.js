@@ -65,31 +65,6 @@ const MarkdownContent = ({ content }) => {
 
 
 export default function CampaignChat() {
-  // Add horizontal scroll support with Shift + mouse wheel
-  // useEffect(() => {
-  //   const handleWheel = (e) => {
-  //     // Check if Shift key is pressed and the event is a vertical scroll
-  //     if (e.shiftKey && e.deltaY !== 0) {
-  //       // Prevent the default vertical scroll behavior
-  //       e.preventDefault();
-        
-  //       // Get the target element
-  //       const target = e.target;
-        
-  //       // Scroll horizontally based on vertical scroll delta
-  //       target.scrollLeft += e.deltaY;
-  //     }
-  //   };
-
-  //   // Add event listener to the document
-  //   document.addEventListener('wheel', handleWheel, { passive: false });
-
-  //   // Clean up the event listener on component unmount
-  //   return () => {
-  //     document.removeEventListener('wheel', handleWheel);
-  //   };
-  // }, []);
-
   // Available data sources and channels
   const dataSources = [
     'GTM', 'Facebook Pixel', 'Google Ads Tag', 'Facebook Page',
