@@ -1,26 +1,82 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0f0f0f;
+  --foreground: #f0f0f0;
+  --search-background: #1a1a1a;
+  --search-border: #2d2d2d;
+  --search-focus: #6366f1;
+  --sidebar-background: #0a0a0a;
+  --sidebar-border: #2d2d2d;
+  --sidebar-foreground: #a3a3a3;
+  --sidebar-primary: #6366f1;
+  --sidebar-accent: #1e1e1e;
+  --nav-hover: #262626;
+  --card-background: #1a1a1a;
+  --card-border: #2d2d2d;
+  --input-background: #1a1a1a;
+  --input-border: #2d2d2d;
+  --input-focus: #6366f1;
+  --button-primary: #6366f1;
+  --button-primary-hover: #5858e6;
+  --button-secondary: #2d2d2d;
+  --button-secondary-hover: #3d3d3d;
+  --message-user-bg: #1e1e1e;
+  --message-assistant-bg: #2d2d2d;
+  --selection-bg: #6366f1;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-search-background: var(--search-background);
+  --color-search-border: var(--search-border);
+  --color-search-focus: var(--search-focus);
+  --color-sidebar: var(--sidebar-background);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-nav-hover: var(--nav-hover);
+  --color-card-background: var(--card-background);
+  --color-card-border: var(--card-border);
+  --color-input-background: var(--input-background);
+  --color-input-border: var(--input-border);
+  --color-input-focus: var(--input-focus);
+  --color-button-primary: var(--button-primary);
+  --color-button-primary-hover: var(--button-primary-hover);
+  --color-button-secondary: var(--button-secondary);
+  --color-button-secondary-hover: var(--button-secondary-hover);
+  --color-message-user-bg: var(--message-user-bg);
+  --color-message-assistant-bg: var(--message-assistant-bg);
+  --color-selection-bg: var(--selection-bg);
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  font-feature-settings: "liga" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--sidebar-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--sidebar-foreground);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sidebar-primary);
 }
