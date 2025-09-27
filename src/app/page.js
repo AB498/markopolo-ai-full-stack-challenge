@@ -5,6 +5,7 @@ import { Search, Globe, Grid3X3, User, Plus, Sparkles, Image as ImageIcon, MapPi
 import { marked } from 'marked';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/atom-one-dark.min.css';
+import { mockData } from './mockData';
 
 // Component to render markdown content
 const MarkdownContent = ({ content }) => {
@@ -76,228 +77,6 @@ export default function CampaignChat() {
     'Email', 'SMS', 'Push', 'WhatsApp', 'Voice', 'Messenger', 'Ads'
   ];
 
-  // Mock data for each source - updated to use the specified JSON format
-  const mockData = {
-    'GTM': {
-      title: 'Google Tag Manager Data',
-      data: [
-        {
-          "userId": "u_101",
-          "eventType": "page_view",
-          "properties": { "url": "/products/electronics", "category": "Electronics" },
-          "contact": {
-            "email": "user101@example.com",
-            "phone": "+1234567890",
-            "pushToken": "tok_gtm_101"
-          },
-          "timestamp": 1695800000000,
-          "source": "GTM"
-        },
-        {
-          "userId": "u_102",
-          "eventType": "click",
-          "properties": { "element": "Add to Cart Button", "product": "Wireless Headphones" },
-          "contact": {
-            "email": "user102@example.com",
-            "phone": "+1234567891",
-            "pushToken": "tok_gtm_102"
-          },
-          "timestamp": 1695800100000,
-          "source": "GTM"
-        }
-      ]
-    },
-    'Facebook Pixel': {
-      title: 'Facebook Pixel Data',
-      data: [
-        {
-          "userId": "u_201",
-          "eventType": "ViewContent",
-          "properties": { "content_name": "Phone Case", "content_category": "Accessories" },
-          "contact": {
-            "email": "fbuser201@example.com",
-            "phone": "+1234567892",
-            "pushToken": "tok_fb_201"
-          },
-          "timestamp": 1695800200000,
-          "source": "Facebook Pixel"
-        },
-        {
-          "userId": "u_202",
-          "eventType": "AddToCart",
-          "properties": { "content_name": "Bluetooth Speaker", "value": 89.99 },
-          "contact": {
-            "email": "fbuser202@example.com",
-            "phone": "+1234567893",
-            "pushToken": "tok_fb_202"
-          },
-          "timestamp": 1695800300000,
-          "source": "Facebook Pixel"
-        }
-      ]
-    },
-    'Google Ads Tag': {
-      title: 'Google Ads Conversion Data',
-      data: [
-        {
-          "userId": "u_301",
-          "eventType": "purchase",
-          "properties": { "conversion_name": "Purchase", "value": 120.50, "currency": "USD" },
-          "contact": {
-            "email": "adsuser301@example.com",
-            "phone": "+1234567894",
-            "pushToken": "tok_ads_301"
-          },
-          "timestamp": 1695800400000,
-          "source": "Google Ads Tag"
-        }
-      ]
-    },
-    'Facebook Page': {
-      title: 'Facebook Page Insights',
-      data: [
-        {
-          "userId": "u_401",
-          "eventType": "page_engagement",
-          "properties": { "action": "like", "post_id": "p_123" },
-          "contact": {
-            "email": "pageuser401@example.com",
-            "phone": "+1234567895",
-            "pushToken": "tok_page_401"
-          },
-          "timestamp": 1695800500000,
-          "source": "Facebook Page"
-        }
-      ]
-    },
-    'Website': {
-      title: 'Website Analytics',
-      data: [
-        {
-          "userId": "u_501",
-          "eventType": "session_start",
-          "properties": { "page": "/home", "referrer": "google.com" },
-          "contact": {
-            "email": "webuser501@example.com",
-            "phone": "+1234567896",
-            "pushToken": "tok_web_501"
-          },
-          "timestamp": 1695800600000,
-          "source": "Website"
-        },
-        {
-          "userId": "u_502",
-          "eventType": "bounce",
-          "properties": { "page": "/products", "time_on_page": 15 },
-          "contact": {
-            "email": "webuser502@example.com",
-            "phone": "+1234567897",
-            "pushToken": "tok_web_502"
-          },
-          "timestamp": 1695800700000,
-          "source": "Website"
-        }
-      ]
-    },
-    'Shopify': {
-      title: 'Shopify Store Data',
-      data: [
-        {
-          "userId": "u_101",
-          "eventType": "cart_abandon",
-          "properties": { "item": "Shoes", "value": 75 },
-          "contact": {
-            "email": "jane@example.com",
-            "phone": "+8801XXXX",
-            "pushToken": "tok_abc"
-          },
-          "timestamp": 1695800000000,
-          "source": "Shopify"
-        },
-        {
-          "userId": "u_602",
-          "eventType": "purchase",
-          "properties": { "item": "Watch", "value": 199.99 },
-          "contact": {
-            "email": "shopifyuser602@example.com",
-            "phone": "+1234567899",
-            "pushToken": "tok_shop_602"
-          },
-          "timestamp": 1695800900000,
-          "source": "Shopify"
-        }
-      ]
-    },
-    'CRMs': {
-      title: 'CRM Customer Data',
-      data: [
-        {
-          "userId": "u_701",
-          "eventType": "lead_create",
-          "properties": { "source": "web_form", "interest": "Product Demo" },
-          "contact": {
-            "email": "crmuser701@example.com",
-            "phone": "+1234567800",
-            "pushToken": "tok_crm_701"
-          },
-          "timestamp": 1695801000000,
-          "source": "CRMs"
-        }
-      ]
-    },
-    'Twitter Page': {
-      title: 'Twitter Analytics',
-      data: [
-        {
-          "userId": "u_801",
-          "eventType": "tweet_engagement",
-          "properties": { "action": "retweet", "tweet_id": "t_456" },
-          "contact": {
-            "email": "twitteruser801@example.com",
-            "phone": "+1234567801",
-            "pushToken": "tok_tw_801"
-          },
-          "timestamp": 1695801100000,
-          "source": "Twitter Page"
-        }
-      ]
-    },
-    'Review Sites': {
-      title: 'Review Site Data',
-      data: [
-        {
-          "userId": "u_901",
-          "eventType": "review_submit",
-          "properties": { "rating": 5, "platform": "Trustpilot" },
-          "contact": {
-            "email": "reviewuser901@example.com",
-            "phone": "+1234567802",
-            "pushToken": "tok_rev_901"
-          },
-          "timestamp": 1695801200000,
-          "source": "Review Sites"
-        }
-      ]
-    },
-    'Ad Managers (Meta, Google, Tiktok, etc.)': {
-      title: 'Ad Manager Performance',
-      data: [
-        {
-          "userId": "u_1001",
-          "eventType": "ad_click",
-          "properties": { "campaign": "Summer Sale", "platform": "Meta" },
-          "contact": {
-            "email": "aduser1001@example.com",
-            "phone": "+1234567803",
-            "pushToken": "tok_ad_1001"
-          },
-          "timestamp": 1695801300000,
-          "source": "Ad Managers"
-        }
-      ]
-    }
-  };
-
   // State management
   const [chatHistories, setChatHistories] = useState([]); // Store all chat histories
   const [currentChatId, setCurrentChatId] = useState(null); // ID of currently active chat
@@ -314,6 +93,7 @@ export default function CampaignChat() {
   const [editingChatName, setEditingChatName] = useState('');
   const messagesEndRef = useRef(null);
   const [activeNavPanel, setActiveNavPanel] = useState('home'); // Track which nav panel is active
+  const [activeAction, setActiveAction] = useState(0); // Track which action button is active (0 = first button)
 
   // Load chat histories from localStorage on component mount
   useEffect(() => {
@@ -831,7 +611,7 @@ export default function CampaignChat() {
   };
 
   const actionButtons = [
-    { icon: Search, label: "Search", variant: "primary" },
+    { icon: Search, label: "Search" },
     { icon: ImageIcon, label: "Image" },
     { icon: MapPin, label: "Location" },
     { icon: Globe, label: "Web" },
@@ -1419,23 +1199,27 @@ export default function CampaignChat() {
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Ask anything about campaign optimization..."
-                  className="w-full bg-transparent border-none text-lg placeholder:text-[var(--sidebar-foreground)] focus:ring-0 focus:ring-offset-0 p-0 text-[var(--foreground)] font-sans"
+                  className="w-full bg-transparent border-none text-lg placeholder:text-[var(--sidebar-foreground)] focus:ring-0 focus:ring-offset-0 focus:outline-none p-0 text-[var(--foreground)] font-sans"
                   disabled={isGenerating || selectedSources.length === 0 || selectedChannels.length === 0}
                 />
 
                 {/* Action Buttons */}
                 <div className="flex items-center gap-2 mt-4 pt-4 border-t border-[var(--input-border)]">
-                  {actionButtons.map((action) => {
+                  {actionButtons.map((action, index) => {
                     const Icon = action.icon;
+                    const isActive = activeAction === index;
                     return (
                       <button
                         key={action.label}
                         type="button"
-                        className={`h-8 w-8 p-0 rounded-full flex items-center justify-center transition-colors ${action.variant === "primary"
-                          ? "bg-[var(--button-primary)] text-white hover:bg-[var(--button-primary-hover)]"
-                          : action.variant === "accent"
-                            ? "text-[var(--button-primary)] hover:bg-[var(--button-primary)]/20"
-                            : "text-[var(--sidebar-foreground)] hover:bg-[var(--nav-hover)]"
+                        onClick={() => setActiveAction(index)}
+                        className={`h-8 w-8 p-0 rounded-full flex items-center justify-center transition-colors ${isActive
+                          ? "bg-[var(--button-primary)] text-white ring-2 ring-[var(--button-primary)] ring-opacity-50"
+                          : action.variant === "primary"
+                            ? "bg-[var(--button-primary)] text-white hover:bg-[var(--button-primary-hover)]"
+                            : action.variant === "accent"
+                              ? "text-[var(--button-primary)] hover:bg-[var(--button-primary)]/20"
+                              : "text-[var(--sidebar-foreground)] hover:bg-[var(--nav-hover)]"
                           }`}
                       >
                         <Icon className="h-4 w-4" />
