@@ -242,12 +242,43 @@ export default function CampaignChat() {
   const [selectedChannels, setSelectedChannels] = useState([]);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
-  const [isStreaming, setIsStreaming] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [isPanelHovered, setIsPanelHovered] = useState(false);
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const [expandedSource, setExpandedSource] = useState(null);
   const [modalData, setModalData] = useState(null);
   const messagesEndRef = useRef(null);
+
+  // Load chat history from localStorage on component mount
+  useEffect(() => {
+    const savedMessages = localStorage.getItem('campaignChatMessages');
+    if (savedMessages) {
+      setMessages(JSON.parse(savedMessages));
+    }
+    
+    const savedSources = localStorage.getItem('selectedSources');
+    if (savedSources) {
+      setSelectedSources(JSON.parse(savedSources));
+    }
+    
+    const savedChannels = localStorage.getItem('selectedChannels');
+    if (savedChannels) {
+      setSelectedChannels(JSON.parse(savedChannels));
+    }
+  }, []);
+
+  // Save chat history to localStorage whenever messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem('campaignChatMessages', JSON.stringify(messages));
+    }
+  }, [messages]);
+
+  // Save selections to localStorage
+  useEffect(() => {
+    localStorage.setItem('selectedSources', JSON.stringify(selectedSources));
+    localStorage.setItem('selectedChannels', JSON.stringify(selectedChannels));
+  }, [selectedSources, selectedChannels]);
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
@@ -295,9 +326,119 @@ export default function CampaignChat() {
     return new Date(timestamp).toLocaleString();
   };
 
-  // Simulate streaming response
-  const streamResponse = async (userMessage) => {
-    setIsStreaming(true);
+  // Call Gemini API
+  const callGeminiAPI = async (userMessage) => {
+    const apiKey = "AIzaSyCWNitg9VDgrumBz2dA1HXJsQ8G76ALBpA";
+    const model = "gemini-2.5-pro";
+    
+    // Create system prompt with context about the data sources and campaign creation
+    const systemPrompt = `You are a marketing campaign expert AI assistant. Your purpose is to help users create JSON payloads for executable marketing campaigns based on user data from various sources.
+    
+    The user will provide a campaign goal, and you should generate a structured JSON campaign payload that includes:
+    1. Campaign name and objective
+    2. Audience segmentation based on the selected data sources
+    3. Channel allocation based on selected channels
+    4. Message content (subject, body, CTA)
+    5. Timing and scheduling information
+    6. Budget allocation
+    
+    Selected data sources: ${selectedSources.join(', ') || 'None selected'}
+    Selected channels: ${selectedChannels.join(', ') || 'None selected'}
+    
+    You can be conversational in your response, but you MUST include the JSON payload wrapped in triple backticks with json language identifier like this:
+    \\\`\\\`\\\`json
+    {
+      "campaign": {
+        "name": "Campaign Name",
+        "objective": "Campaign Objective",
+        // ... rest of the JSON structure
+      }
+    }
+    \\\`\\\`\\\`
+    
+    Example response format:
+    I'll help you create a campaign for that. Here's the JSON payload you can use:
+    
+    \\\`\\\`\\\`json
+    {
+      "campaign": {
+        "name": "Campaign Name",
+        "objective": "Campaign Objective",
+        "audience": {
+          "segments": ["Segment 1", "Segment 2"],
+          "targeting": {
+            "location": "Target locations",
+            "demographics": "Demographic targeting",
+            "behavior": "Behavioral targeting"
+          }
+        },
+        "channels": ["Selected channels"],
+        "dataSources": ["Selected data sources"],
+        "message": {
+          "subject": "Message subject",
+          "body": "Message body",
+          "cta": "Call to action"
+        },
+        "timing": {
+          "optimalSendTime": "ISO timestamp",
+          "frequency": "Send frequency",
+          "timezone": "Timezone"
+        },
+        "budget": {
+          "total": 0,
+          "allocation": {
+            "Channel": 0
+          }
+        }
+      }
+    }
+    \\\`\\\`\\\`
+    
+    Make sure to always include the JSON payload in the code block as shown above.`;
+
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            { 
+              role: "user", 
+              parts: [
+                { 
+                  text: `System: ${systemPrompt}\n\nUser: ${userMessage}` 
+                }
+              ] 
+            }
+          ],
+          generationConfig: {
+            responseMimeType: "text/plain"
+          }
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error(`API request failed with status ${res.status}`);
+      }
+
+      const data = await res.json();
+      
+      // Extract the response text
+      if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
+        const responseText = data.candidates[0].content.parts[0].text;
+        return responseText;
+      } else {
+        throw new Error("Invalid API response structure");
+      }
+    } catch (error) {
+      console.error("Error calling Gemini API:", error);
+      throw error;
+    }
+  };
+
+  // Generate response using Gemini API
+  const generateResponse = async (userMessage) => {
+    setIsGenerating(true);
     
     // Add user message
     const userMsg = { id: Date.now(), role: 'user', content: userMessage };
@@ -305,83 +446,43 @@ export default function CampaignChat() {
     
     // Add initial assistant message
     const assistantMsgId = Date.now() + 1;
-    const assistantMsg = { id: assistantMsgId, role: 'assistant', content: '', isStreaming: true };
+    const assistantMsg = { id: assistantMsgId, role: 'assistant', content: '', isGenerating: true };
     setMessages(prev => [...prev, assistantMsg]);
     
-    // Simulate thinking time
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Generate campaign payload
-    const campaignPayload = {
-      campaign: {
-        name: `Campaign for ${userMessage}`,
-        objective: "Maximize engagement and conversions",
-        audience: {
-          segments: ["Returning customers", "High-value prospects"],
-          targeting: {
-            location: "US, CA, NY, TX",
-            demographics: "Age 25-45, Interests in tech products",
-            behavior: "Recent website visitors, cart abandoners"
-          }
-        },
-        channels: selectedChannels,
-        dataSources: selectedSources,
-        message: {
-          subject: "Special Offer Just For You!",
-          body: "We've noticed you're interested in our products. Here's an exclusive offer just for you.",
-          cta: "Claim Your Discount Now"
-        },
-        timing: {
-          optimalSendTime: "2025-09-28T14:30:00Z",
-          frequency: "Once per week",
-          timezone: "America/New_York"
-        },
-        budget: {
-          total: 5000,
-          allocation: selectedChannels.reduce((acc, channel, index) => {
-            acc[channel] = Math.floor(5000 / selectedChannels.length);
-            return acc;
-          }, {})
-        }
-      }
-    };
-    
-    // Stream the response word by word
-    const responseText = `Based on your connected data sources (${selectedSources.join(', ')}) and selected channels (${selectedChannels.join(', ')}), here's your optimized campaign:\n\n\`\`\`json\n${JSON.stringify(campaignPayload, null, 2)}\n\`\`\``;
-    
-    // Split response into words for streaming effect
-    const words = responseText.split(' ');
-    let currentContent = '';
-    
-    for (let i = 0; i < words.length; i++) {
-      currentContent += (i > 0 ? ' ' : '') + words[i];
+    try {
+      const response = await callGeminiAPI(userMessage);
+      
+      // Update assistant message with the response
       setMessages(prev => prev.map(msg => 
         msg.id === assistantMsgId 
-          ? { ...msg, content: currentContent }
+          ? { ...msg, content: response, isGenerating: false }
           : msg
       ));
-      
-      // Random delay for realistic streaming
-      await new Promise(resolve => setTimeout(resolve, 50 + Math.random() * 100));
+    } catch (error) {
+      // Handle error case
+      setMessages(prev => prev.map(msg => 
+        msg.id === assistantMsgId 
+          ? { ...msg, content: `Error: ${error.message}. Please try again.`, isGenerating: false }
+          : msg
+      ));
     }
     
-    // Mark streaming as complete
-    setMessages(prev => prev.map(msg => 
-      msg.id === assistantMsgId 
-        ? { ...msg, isStreaming: false }
-        : msg
-    ));
-    
-    setIsStreaming(false);
+    setIsGenerating(false);
   };
 
   // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (inputValue.trim() && selectedSources.length > 0 && selectedChannels.length > 0 && !isStreaming) {
-      streamResponse(inputValue);
+    if (inputValue.trim() && selectedSources.length > 0 && selectedChannels.length > 0 && !isGenerating) {
+      generateResponse(inputValue);
       setInputValue('');
     }
+  };
+
+  // Clear chat history
+  const clearChat = () => {
+    setMessages([]);
+    localStorage.removeItem('campaignChatMessages');
   };
 
   const actionButtons = [
@@ -594,8 +695,16 @@ export default function CampaignChat() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="bg-[var(--background)] border-b border-[var(--search-border)] p-4">
+        <header className="bg-[var(--background)] border-b border-[var(--search-border)] p-4 flex justify-between items-center">
           <h1 className="text-2xl font-light text-[var(--foreground)]">Campaign Optimizer</h1>
+          {messages.length > 0 && (
+            <button 
+              onClick={clearChat}
+              className="text-sm text-[var(--button-primary)] hover:underline"
+            >
+              Clear Chat
+            </button>
+          )}
         </header>
 
         {/* Chat Interface */}
@@ -629,7 +738,7 @@ export default function CampaignChat() {
                     </div>
                     <div className="whitespace-pre-wrap text-[var(--foreground)]">
                       {message.content}
-                      {message.isStreaming && (
+                      {message.isGenerating && (
                         <span className="inline-block w-2 h-4 bg-[var(--foreground)] ml-1 animate-pulse"></span>
                       )}
                     </div>
@@ -650,7 +759,7 @@ export default function CampaignChat() {
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Ask anything about campaign optimization..."
                   className="w-full bg-transparent border-none text-lg placeholder:text-[var(--sidebar-foreground)] focus:ring-0 focus:ring-offset-0 p-0 text-[var(--foreground)] font-sans"
-                  disabled={isStreaming || selectedSources.length === 0 || selectedChannels.length === 0}
+                  disabled={isGenerating || selectedSources.length === 0 || selectedChannels.length === 0}
                 />
                 
                 {/* Action Buttons */}
@@ -677,9 +786,9 @@ export default function CampaignChat() {
                   <button
                     type="submit"
                     className="ml-auto h-8 px-3 py-1 rounded-full bg-[var(--button-primary)] text-white text-sm hover:bg-[var(--button-primary-hover)] disabled:opacity-50 flex items-center transition-colors"
-                    disabled={!inputValue.trim() || isStreaming || selectedSources.length === 0 || selectedChannels.length === 0}
+                    disabled={!inputValue.trim() || isGenerating || selectedSources.length === 0 || selectedChannels.length === 0}
                   >
-                    {isStreaming ? 'Streaming...' : 'Generate'}
+                    {isGenerating ? 'Generating...' : 'Generate'}
                   </button>
                 </div>
               </div>
