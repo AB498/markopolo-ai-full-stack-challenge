@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Search, Globe, Grid3X3, User, Plus, Sparkles, Image as ImageIcon, MapPin, Paperclip, Mic, ChevronDown, ChevronUp, Trash2, Edit3 } from "lucide-react";
+import { Search, Globe, Grid3X3, User, Plus, Sparkles, Image as ImageIcon, MapPin, Paperclip, Mic, ChevronDown, ChevronUp, Trash2, Edit3, HomeIcon, Settings, Megaphone } from "lucide-react";
 
 export default function CampaignChat() {
   // Available data sources and channels
@@ -252,6 +252,7 @@ export default function CampaignChat() {
   const [editingChatId, setEditingChatId] = useState(null);
   const [editingChatName, setEditingChatName] = useState('');
   const messagesEndRef = useRef(null);
+  const [activeNavPanel, setActiveNavPanel] = useState('home'); // Track which nav panel is active
 
   // Load chat histories from localStorage on component mount
   useEffect(() => {
@@ -677,9 +678,9 @@ export default function CampaignChat() {
   ];
 
   const navItems = [
-    { icon: Sparkles, label: "Campaigns", isActive: true },
-    { icon: Globe, label: "Discover" },
-    { icon: Grid3X3, label: "Spaces" },
+    { icon: HomeIcon, label: "Home", id: "home" },
+    { icon: Settings, label: "Configurations", id: "configurations" },
+    { icon: Megaphone, label: "Campaigns", id: "campaigns" }
   ];
 
   // Determine if panel should be visible
@@ -687,6 +688,425 @@ export default function CampaignChat() {
 
   // Get current chat name for display
   const currentChatName = chatHistories.find(chat => chat.id === currentChatId)?.name || 'New Chat';
+
+  // Render panel content based on active nav item
+  const renderPanelContent = () => {
+    switch(activeNavPanel) {
+      case 'home':
+        return (
+          <>
+            <h2 className="text-lg font-semibold mb-4 text-[var(--sidebar-primary)]">Chat History</h2>
+            <div className="flex-1 overflow-y-auto">
+              {/* Chat History Section */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-medium text-[var(--foreground)]">Recent Chats</h3>
+                  <button 
+                    onClick={createNewChat}
+                    className="text-xs text-[var(--button-primary)] hover:underline"
+                  >
+                    New Chat
+                  </button>
+                </div>
+                <div className="space-y-1 max-h-96 overflow-y-auto">
+                  {chatHistories.map(chat => (
+                    <div 
+                      key={chat.id}
+                      className={`flex items-center justify-between px-3 py-2 rounded-md text-sm cursor-pointer ${
+                        chat.id === currentChatId
+                          ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
+                          : 'bg-[var(--card-background)] border border-[var(--card-border)] hover:bg-[var(--nav-hover)]'
+                      }`}
+                      onClick={() => switchToChat(chat.id)}
+                    >
+                      {editingChatId === chat.id ? (
+                        <input
+                          type="text"
+                          value={editingChatName}
+                          onChange={(e) => setEditingChatName(e.target.value)}
+                          onBlur={() => saveEditedChatName(chat.id)}
+                          onKeyDown={(e) => handleEditKeyDown(chat.id, e)}
+                          autoFocus
+                          className="bg-transparent border-b border-[var(--input-border)] focus:outline-none w-full"
+                        />
+                      ) : (
+                        <div className="flex items-center">
+                          <span 
+                            className="text-[var(--foreground)] truncate max-w-[180px]"
+                            onDoubleClick={(e) => startEditingChatName(chat.id, chat.name, e)}
+                          >
+                            {chat.name}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex items-center">
+                        <button
+                          onClick={(e) => startEditingChatName(chat.id, chat.name, e)}
+                          className="p-1 text-[var(--sidebar-foreground)] hover:text-[var(--foreground)]"
+                        >
+                          <Edit3 className="h-3 w-3" />
+                        </button>
+                        <button
+                          onClick={(e) => deleteChat(chat.id, e)}
+                          className="p-1 text-[var(--sidebar-foreground)] hover:text-red-500"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+              {/* Navigation Links */}
+            <div className="pt-4 border-t border-[var(--sidebar-border)]">
+              <ul className="space-y-2">
+                <li>
+                  <a href="#" className="block py-2 px-3 rounded-md hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)]">
+                    Dashboard
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="block py-2 px-3 rounded-md hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)]">
+                    Campaigns
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="block py-2 px-3 rounded-md hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)]">
+                    Analytics
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="block py-2 px-3 rounded-md hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)]">
+                    Settings
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="block py-2 px-3 rounded-md hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)]">
+                    Help & Support
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </>
+        );
+      case 'configurations':
+        return (
+          <>
+            <h2 className="text-lg font-semibold mb-4 text-[var(--sidebar-primary)]">Configuration</h2>
+            
+            <div className="flex-1 overflow-y-auto">
+              {/* Data Sources */}
+              <div className="mb-6">
+                <h3 className="font-medium mb-2 text-[var(--foreground)]">Data Sources (Select up to 3)</h3>
+                <div className="space-y-2">
+                  {dataSources.map(source => (
+                    <div 
+                      key={source}
+                      className={`rounded-md text-sm ${
+                        selectedSources.includes(source)
+                          ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
+                          : 'bg-[var(--card-background)] border border-[var(--card-border)]'
+                      }`}
+                    >
+                      <div 
+                        className="flex items-center justify-between px-3 py-2 cursor-pointer"
+                        onClick={() => toggleSourceAccordion(source)}
+                      >
+                        <span className="text-[var(--foreground)]">{source}</span>
+                        <div className="flex items-center">
+                          {expandedSource === source ? (
+                            <ChevronUp className="h-4 w-4 text-[var(--foreground)]" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-[var(--foreground)]" />
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleSource(source);
+                            }}
+                            className={`ml-2 px-2 py-1 rounded text-xs ${
+                              selectedSources.includes(source)
+                                ? 'bg-[var(--button-primary)] text-white'
+                                : selectedSources.length >= 3 && !selectedSources.includes(source)
+                                  ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
+                                  : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
+                            }`}
+                            disabled={!selectedSources.includes(source) && selectedSources.length >= 3}
+                          >
+                            {selectedSources.includes(source) ? 'Connected' : 'Connect'}
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {expandedSource === source && (
+                        <div className="px-3 pb-2">
+                          <button 
+                            onClick={() => openDataModal(source)}
+                            className="text-xs text-[var(--button-primary)] hover:underline"
+                          >
+                            See Data
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-[var(--sidebar-foreground)] mt-1">
+                  Selected: {selectedSources.length}/3
+                </p>
+              </div>
+              
+              {/* Channels */}
+              <div>
+                <h3 className="font-medium mb-2 text-[var(--foreground)]">Channels (Select up to 4)</h3>
+                <div className="space-y-2">
+                  {channels.map(channel => (
+                    <div 
+                      key={channel}
+                      className={`flex items-center justify-between px-3 py-2 rounded-md text-sm ${
+                        selectedChannels.includes(channel)
+                          ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
+                        : 'bg-[var(--card-background)] border border-[var(--card-border)]'
+                      }`}
+                    >
+                      <span className="text-[var(--foreground)]">{channel}</span>
+                      <button
+                        onClick={() => toggleChannel(channel)}
+                        className={`px-2 py-1 rounded text-xs ${
+                          selectedChannels.includes(channel)
+                            ? 'bg-[var(--button-primary)] text-white'
+                            : selectedChannels.length >= 4 && !selectedChannels.includes(channel)
+                              ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
+                              : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
+                        }`}
+                        disabled={!selectedChannels.includes(channel) && selectedChannels.length >= 4}
+                      >
+                        {selectedChannels.includes(channel) ? 'Connected' : 'Connect'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-[var(--sidebar-foreground)] mt-1">
+                  Selected: {selectedChannels.length}/4
+                </p>
+              </div>
+            </div>
+
+          </>
+        );
+      case 'campaigns':
+        return (
+          <>
+            <h2 className="text-lg font-semibold mb-4 text-[var(--sidebar-primary)]">Campaigns</h2>
+            <div className="flex-1 overflow-y-auto">
+              <div className="text-center py-10">
+                <Megaphone className="h-12 w-12 text-[var(--sidebar-foreground)] mx-auto mb-4" />
+                <h3 className="text-xl font-medium text-[var(--foreground)] mb-2">Campaigns Feature</h3>
+                <p className="text-[var(--sidebar-foreground)]">This feature is not yet implemented.</p>
+              </div>
+            </div>
+          </>
+        );
+      default:
+        return (
+          <>
+            <h2 className="text-lg font-semibold mb-4 text-[var(--sidebar-primary)]">Configuration</h2>
+            
+            <div className="flex-1 overflow-y-auto">
+              {/* Chat History Section */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-medium text-[var(--foreground)]">Chat History</h3>
+                  <button 
+                    onClick={createNewChat}
+                    className="text-xs text-[var(--button-primary)] hover:underline"
+                  >
+                    New Chat
+                  </button>
+                </div>
+                <div className="space-y-1 max-h-40 overflow-y-auto">
+                  {chatHistories.map(chat => (
+                    <div 
+                      key={chat.id}
+                      className={`flex items-center justify-between px-3 py-2 rounded-md text-sm cursor-pointer ${
+                        chat.id === currentChatId
+                          ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
+                          : 'bg-[var(--card-background)] border border-[var(--card-border)] hover:bg-[var(--nav-hover)]'
+                      }`}
+                      onClick={() => switchToChat(chat.id)}
+                    >
+                      {editingChatId === chat.id ? (
+                        <input
+                          type="text"
+                          value={editingChatName}
+                          onChange={(e) => setEditingChatName(e.target.value)}
+                          onBlur={() => saveEditedChatName(chat.id)}
+                          onKeyDown={(e) => handleEditKeyDown(chat.id, e)}
+                          autoFocus
+                          className="bg-transparent border-b border-[var(--input-border)] focus:outline-none w-full"
+                        />
+                      ) : (
+                        <div className="flex items-center">
+                          <span 
+                            className="text-[var(--foreground)] truncate max-w-[180px]"
+                            onDoubleClick={(e) => startEditingChatName(chat.id, chat.name, e)}
+                          >
+                            {chat.name}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex items-center">
+                        <button
+                          onClick={(e) => startEditingChatName(chat.id, chat.name, e)}
+                          className="p-1 text-[var(--sidebar-foreground)] hover:text-[var(--foreground)]"
+                        >
+                          <Edit3 className="h-3 w-3" />
+                        </button>
+                        <button
+                          onClick={(e) => deleteChat(chat.id, e)}
+                          className="p-1 text-[var(--sidebar-foreground)] hover:text-red-500"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Data Sources */}
+              <div className="mb-6">
+                <h3 className="font-medium mb-2 text-[var(--foreground)]">Data Sources (Select up to 3)</h3>
+                <div className="space-y-2">
+                  {dataSources.map(source => (
+                    <div 
+                      key={source}
+                      className={`rounded-md text-sm ${
+                        selectedSources.includes(source)
+                          ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
+                          : 'bg-[var(--card-background)] border border-[var(--card-border)]'
+                      }`}
+                    >
+                      <div 
+                        className="flex items-center justify-between px-3 py-2 cursor-pointer"
+                        onClick={() => toggleSourceAccordion(source)}
+                      >
+                        <span className="text-[var(--foreground)]">{source}</span>
+                        <div className="flex items-center">
+                          {expandedSource === source ? (
+                            <ChevronUp className="h-4 w-4 text-[var(--foreground)]" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-[var(--foreground)]" />
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleSource(source);
+                            }}
+                            className={`ml-2 px-2 py-1 rounded text-xs ${
+                              selectedSources.includes(source)
+                                ? 'bg-[var(--button-primary)] text-white'
+                                : selectedSources.length >= 3 && !selectedSources.includes(source)
+                                  ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
+                                  : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
+                            }`}
+                            disabled={!selectedSources.includes(source) && selectedSources.length >= 3}
+                          >
+                            {selectedSources.includes(source) ? 'Connected' : 'Connect'}
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {expandedSource === source && (
+                        <div className="px-3 pb-2">
+                          <button 
+                            onClick={() => openDataModal(source)}
+                            className="text-xs text-[var(--button-primary)] hover:underline"
+                          >
+                            See Data
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-[var(--sidebar-foreground)] mt-1">
+                  Selected: {selectedSources.length}/3
+                </p>
+              </div>
+              
+              {/* Channels */}
+              <div>
+                <h3 className="font-medium mb-2 text-[var(--foreground)]">Channels (Select up to 4)</h3>
+                <div className="space-y-2">
+                  {channels.map(channel => (
+                    <div 
+                      key={channel}
+                      className={`flex items-center justify-between px-3 py-2 rounded-md text-sm ${
+                        selectedChannels.includes(channel)
+                          ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
+                        : 'bg-[var(--card-background)] border border-[var(--card-border)]'
+                      }`}
+                    >
+                      <span className="text-[var(--foreground)]">{channel}</span>
+                      <button
+                        onClick={() => toggleChannel(channel)}
+                        className={`px-2 py-1 rounded text-xs ${
+                          selectedChannels.includes(channel)
+                            ? 'bg-[var(--button-primary)] text-white'
+                            : selectedChannels.length >= 4 && !selectedChannels.includes(channel)
+                              ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
+                              : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
+                        }`}
+                        disabled={!selectedChannels.includes(channel) && selectedChannels.length >= 4}
+                      >
+                        {selectedChannels.includes(channel) ? 'Connected' : 'Connect'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-[var(--sidebar-foreground)] mt-1">
+                  Selected: {selectedChannels.length}/4
+                </p>
+              </div>
+            </div>
+            
+            {/* Navigation Links */}
+            <div className="pt-4 border-t border-[var(--sidebar-border)]">
+              <ul className="space-y-2">
+                <li>
+                  <a href="#" className="block py-2 px-3 rounded-md hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)]">
+                    Dashboard
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="block py-2 px-3 rounded-md hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)]">
+                    Campaigns
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="block py-2 px-3 rounded-md hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)]">
+                    Analytics
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="block py-2 px-3 rounded-md hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)]">
+                    Settings
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="block py-2 px-3 rounded-md hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)]">
+                    Help & Support
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </>
+        );
+    }
+  };
 
   return (
     <div className="flex h-screen bg-[var(--background)] text-[var(--foreground)] font-sans">
@@ -716,12 +1136,14 @@ export default function CampaignChat() {
           <div className="space-y-2">
             {navItems.map((item) => (
               <button
-                key={item.label}
+                key={item.id}
                 className={`w-10 h-10 p-0 flex flex-col items-center justify-center gap-1 rounded-full transition-colors ${
-                  item.isActive 
+                  activeNavPanel === item.id 
                     ? "text-[var(--sidebar-primary)] bg-[var(--sidebar-accent)]" 
                     : "text-[var(--sidebar-foreground)] hover:bg-[var(--nav-hover)]"
                 }`}
+                onClick={() => setActiveNavPanel(item.id)}
+                onMouseEnter={() => setActiveNavPanel(item.id)}
               >
                 <item.icon className="h-5 w-5" />
               </button>
@@ -746,197 +1168,7 @@ export default function CampaignChat() {
         onMouseLeave={() => setIsPanelHovered(false)}
       >
         <div className="p-4 h-full flex flex-col">
-          <h2 className="text-lg font-semibold mb-4 text-[var(--sidebar-primary)]">Configuration</h2>
-          
-          <div className="flex-1 overflow-y-auto">
-            {/* Chat History Section */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium text-[var(--foreground)]">Chat History</h3>
-                <button 
-                  onClick={createNewChat}
-                  className="text-xs text-[var(--button-primary)] hover:underline"
-                >
-                  New Chat
-                </button>
-              </div>
-              <div className="space-y-1 max-h-40 overflow-y-auto">
-                {chatHistories.map(chat => (
-                  <div 
-                    key={chat.id}
-                    className={`flex items-center justify-between px-3 py-2 rounded-md text-sm cursor-pointer ${
-                      chat.id === currentChatId
-                        ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
-                        : 'bg-[var(--card-background)] border border-[var(--card-border)] hover:bg-[var(--nav-hover)]'
-                    }`}
-                    onClick={() => switchToChat(chat.id)}
-                  >
-                    {editingChatId === chat.id ? (
-                      <input
-                        type="text"
-                        value={editingChatName}
-                        onChange={(e) => setEditingChatName(e.target.value)}
-                        onBlur={() => saveEditedChatName(chat.id)}
-                        onKeyDown={(e) => handleEditKeyDown(chat.id, e)}
-                        autoFocus
-                        className="bg-transparent border-b border-[var(--input-border)] focus:outline-none w-full"
-                      />
-                    ) : (
-                      <div className="flex items-center">
-                        <span 
-                          className="text-[var(--foreground)] truncate max-w-[180px]"
-                          onDoubleClick={(e) => startEditingChatName(chat.id, chat.name, e)}
-                        >
-                          {chat.name}
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex items-center">
-                      <button
-                        onClick={(e) => startEditingChatName(chat.id, chat.name, e)}
-                        className="p-1 text-[var(--sidebar-foreground)] hover:text-[var(--foreground)]"
-                      >
-                        <Edit3 className="h-3 w-3" />
-                      </button>
-                      <button
-                        onClick={(e) => deleteChat(chat.id, e)}
-                        className="p-1 text-[var(--sidebar-foreground)] hover:text-red-500"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Data Sources */}
-            <div className="mb-6">
-              <h3 className="font-medium mb-2 text-[var(--foreground)]">Data Sources (Select up to 3)</h3>
-              <div className="space-y-2">
-                {dataSources.map(source => (
-                  <div 
-                    key={source}
-                    className={`rounded-md text-sm ${
-                      selectedSources.includes(source)
-                        ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
-                        : 'bg-[var(--card-background)] border border-[var(--card-border)]'
-                    }`}
-                  >
-                    <div 
-                      className="flex items-center justify-between px-3 py-2 cursor-pointer"
-                      onClick={() => toggleSourceAccordion(source)}
-                    >
-                      <span className="text-[var(--foreground)]">{source}</span>
-                      <div className="flex items-center">
-                        {expandedSource === source ? (
-                          <ChevronUp className="h-4 w-4 text-[var(--foreground)]" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4 text-[var(--foreground)]" />
-                        )}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleSource(source);
-                          }}
-                          className={`ml-2 px-2 py-1 rounded text-xs ${
-                            selectedSources.includes(source)
-                              ? 'bg-[var(--button-primary)] text-white'
-                              : selectedSources.length >= 3 && !selectedSources.includes(source)
-                                ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
-                                : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
-                          }`}
-                          disabled={!selectedSources.includes(source) && selectedSources.length >= 3}
-                        >
-                          {selectedSources.includes(source) ? 'Connected' : 'Connect'}
-                        </button>
-                      </div>
-                    </div>
-                    
-                    {expandedSource === source && (
-                      <div className="px-3 pb-2">
-                        <button 
-                          onClick={() => openDataModal(source)}
-                          className="text-xs text-[var(--button-primary)] hover:underline"
-                        >
-                          See Data
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-[var(--sidebar-foreground)] mt-1">
-                Selected: {selectedSources.length}/3
-              </p>
-            </div>
-            
-            {/* Channels */}
-            <div>
-              <h3 className="font-medium mb-2 text-[var(--foreground)]">Channels (Select up to 4)</h3>
-              <div className="space-y-2">
-                {channels.map(channel => (
-                  <div 
-                    key={channel}
-                    className={`flex items-center justify-between px-3 py-2 rounded-md text-sm ${
-                      selectedChannels.includes(channel)
-                        ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
-                      : 'bg-[var(--card-background)] border border-[var(--card-border)]'
-                    }`}
-                  >
-                    <span className="text-[var(--foreground)]">{channel}</span>
-                    <button
-                      onClick={() => toggleChannel(channel)}
-                      className={`px-2 py-1 rounded text-xs ${
-                        selectedChannels.includes(channel)
-                          ? 'bg-[var(--button-primary)] text-white'
-                          : selectedChannels.length >= 4 && !selectedChannels.includes(channel)
-                            ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
-                            : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
-                      }`}
-                      disabled={!selectedChannels.includes(channel) && selectedChannels.length >= 4}
-                    >
-                      {selectedChannels.includes(channel) ? 'Connected' : 'Connect'}
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-[var(--sidebar-foreground)] mt-1">
-                Selected: {selectedChannels.length}/4
-              </p>
-            </div>
-          </div>
-          
-          {/* Navigation Links */}
-          <div className="pt-4 border-t border-[var(--sidebar-border)]">
-            <ul className="space-y-2">
-              <li>
-                <a href="#" className="block py-2 px-3 rounded-md hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)]">
-                  Dashboard
-                </a>
-              </li>
-              <li>
-                <a href="#" className="block py-2 px-3 rounded-md hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)]">
-                  Campaigns
-                </a>
-              </li>
-              <li>
-                <a href="#" className="block py-2 px-3 rounded-md hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)]">
-                  Analytics
-                </a>
-              </li>
-              <li>
-                <a href="#" className="block py-2 px-3 rounded-md hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)]">
-                  Settings
-                </a>
-              </li>
-              <li>
-                <a href="#" className="block py-2 px-3 rounded-md hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)]">
-                  Help & Support
-                </a>
-              </li>
-            </ul>
-          </div>
+          {renderPanelContent()}
         </div>
       </div>
 
