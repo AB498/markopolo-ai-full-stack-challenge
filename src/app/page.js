@@ -219,18 +219,27 @@ export default function CampaignChat() {
               <h3 className="font-medium mb-2 text-[var(--foreground)]">Data Sources (Select up to 3)</h3>
               <div className="space-y-2">
                 {dataSources.map(source => (
-                  <button
+                  <div 
                     key={source}
-                    onClick={() => toggleSource(source)}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                    className={`flex items-center justify-between px-3 py-2 rounded-md text-sm ${
                       selectedSources.includes(source)
-                        ? 'bg-[var(--button-primary)]/20 text-[var(--button-primary)] border border-[var(--button-primary)]/50'
-                        : 'bg-[var(--card-background)] text-[var(--foreground)] hover:bg-[var(--nav-hover)] border border-[var(--card-border)]'
+                        ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
+                        : 'bg-[var(--card-background)] border border-[var(--card-border)]'
                     }`}
-                    disabled={!selectedSources.includes(source) && selectedSources.length >= 3}
                   >
-                    {source}
-                  </button>
+                    <span className="text-[var(--foreground)]">{source}</span>
+                    <button
+                      onClick={() => toggleSource(source)}
+                      className={`px-2 py-1 rounded text-xs ${
+                        selectedSources.includes(source)
+                          ? 'bg-[var(--button-primary)] text-white'
+                          : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
+                      }`}
+                      disabled={!selectedSources.includes(source) && selectedSources.length >= 3}
+                    >
+                      {selectedSources.includes(source) ? 'Connected' : 'Connect'}
+                    </button>
+                  </div>
                 ))}
               </div>
               <p className="text-xs text-[var(--sidebar-foreground)] mt-1">
@@ -243,18 +252,27 @@ export default function CampaignChat() {
               <h3 className="font-medium mb-2 text-[var(--foreground)]">Channels (Select up to 4)</h3>
               <div className="space-y-2">
                 {channels.map(channel => (
-                  <button
+                  <div 
                     key={channel}
-                    onClick={() => toggleChannel(channel)}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                    className={`flex items-center justify-between px-3 py-2 rounded-md text-sm ${
                       selectedChannels.includes(channel)
-                        ? 'bg-[var(--button-primary)]/20 text-[var(--button-primary)] border border-[var(--button-primary)]/50'
-                        : 'bg-[var(--card-background)] text-[var(--foreground)] hover:bg-[var(--nav-hover)] border border-[var(--card-border)]'
+                        ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
+                      : 'bg-[var(--card-background)] border border-[var(--card-border)]'
                     }`}
-                    disabled={!selectedChannels.includes(channel) && selectedChannels.length >= 4}
                   >
-                    {channel}
-                  </button>
+                    <span className="text-[var(--foreground)]">{channel}</span>
+                    <button
+                      onClick={() => toggleChannel(channel)}
+                      className={`px-2 py-1 rounded text-xs ${
+                        selectedChannels.includes(channel)
+                          ? 'bg-[var(--button-primary)] text-white'
+                          : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
+                      }`}
+                      disabled={!selectedChannels.includes(channel) && selectedChannels.length >= 4}
+                    >
+                      {selectedChannels.includes(channel) ? 'Connected' : 'Connect'}
+                    </button>
+                  </div>
                 ))}
               </div>
               <p className="text-xs text-[var(--sidebar-foreground)] mt-1">
