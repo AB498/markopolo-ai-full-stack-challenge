@@ -33,35 +33,49 @@ export async function POST(request) {
                         if (done) { controller.close(); break; }
                         buffer += decoder.decode(value, { stream: true });
 
-                        let startPos = buffer.startsWith('[') ? 1 : 0;
-
-                        while (startPos < buffer.length) {
+                        // Process complete JSON objects in the buffer
+                        while (buffer.length > 0) {
+                            let startPos = buffer.startsWith('[') ? 1 : 0;
                             let endPos = -1;
+                            
+                            // Look for complete JSON objects
                             for (let i = startPos; i < buffer.length - 1; i++) {
                                 if (buffer[i] === '}') {
                                     let j = i + 1;
+                                    // Skip whitespace
                                     while (j < buffer.length && /\s/.test(buffer[j])) j++;
+                                    // Check if we have a complete object
                                     if (j < buffer.length && (buffer[j] === ',' || buffer[j] === ']')) {
                                         try {
-                                            if (JSON.parse(buffer.substring(startPos, i + 1))) endPos = i;
-                                        } catch {}
-                                        if (endPos !== -1) break;
+                                            const jsonStr = buffer.substring(startPos, i + 1);
+                                            JSON.parse(jsonStr); // Validate JSON
+                                            endPos = i;
+                                            break;
+                                        } catch (e) {
+                                            // Not a valid JSON object, continue searching
+                                        }
                                     }
                                 }
                             }
 
                             if (endPos !== -1) {
-                                let jsonStr = buffer.substring(startPos, endPos + 1);
+                                // Extract and process the complete JSON object
+                                const jsonStr = buffer.substring(startPos, endPos + 1);
                                 try {
-                                    const token = JSON.parse(jsonStr)?.candidates?.[0]?.content?.parts?.[0]?.text;
+                                    const parsed = JSON.parse(jsonStr);
+                                    const token = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
+                                    console.log(token)
                                     if (token) controller.enqueue(encoder.encode(token));
-                                } catch {}
+                                } catch (e) {
+                                    // Ignore parsing errors
+                                }
 
+                                // Move buffer position past the processed object
                                 let j = endPos + 1;
                                 while (j < buffer.length && /[\s,]/.test(buffer[j])) j++;
-                                startPos = j;
+                                buffer = buffer.substring(j);
                             } else {
-                                buffer = buffer.substring(startPos);
+                                // No complete object found, wait for more data
                                 break;
                             }
                         }

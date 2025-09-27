@@ -266,12 +266,8 @@ export default function CampaignChat() {
     return new Date(timestamp).toLocaleString();
   };
 
-  // Call Gemini API
-  const callGeminiAPI = async (userMessage) => {
-    const apiKey = "AIzaSyCWNitg9VDgrumBz2dA1HXJsQ8G76ALBpA";
-    const model = "gemini-2.5-pro";
-
-    // Create system prompt with context about the data sources and campaign creation
+  // Call Gemini API with streaming
+  const callGeminiAPIStream = async (userMessage) => {
     const systemPrompt = `You are a marketing campaign expert AI assistant. Your purpose is to help users create JSON payloads for executable marketing campaigns based on user data from various sources.
     
     The user will provide a campaign goal, and you should generate a structured JSON campaign payload that includes:
@@ -286,7 +282,7 @@ export default function CampaignChat() {
     Selected channels: ${selectedChannels.join(', ') || 'None selected'}
     
     You can be conversational in your response, but you MUST include the JSON payload wrapped in triple backticks with json language identifier like this:
-    \\\`\\\`\\\`json
+    \`\`\`json
     {
       "campaign": {
         "name": "Campaign Name",
@@ -294,12 +290,12 @@ export default function CampaignChat() {
         // ... rest of the JSON structure
       }
     }
-    \\\`\\\`\\\`
+    \`\`\`
     
     Example response format:
     I'll help you create a campaign for that. Here's the JSON payload you can use:
     
-    \\\`\\\`\\\`json
+    \`\`\`json
     {
       "campaign": {
         "name": "Campaign Name",
@@ -332,87 +328,32 @@ export default function CampaignChat() {
         }
       }
     }
-    \\\`\\\`\\\`
+    \`\`\`
     
     Make sure to always include the JSON payload in the code block as shown above.`;
 
+    const fullPrompt = `System: ${systemPrompt}\n\nUser: ${userMessage}`;
+
     try {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [
-                {
-                  text: `System: ${systemPrompt}\n\nUser: ${userMessage}`
-                }
-              ]
-            }
-          ],
-          generationConfig: {
-            responseMimeType: "text/plain"
-          }
-        })
+      const response = await fetch('/api/gemini-streaming', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: fullPrompt })
       });
 
-      if (!res.ok) {
-        // Try to parse the error response
-        const errorResponse = await res.json().catch(() => ({}));
-        let errorMessage = `API request failed with status ${res.status}`;
-
-        // Check if there's a specific error message in the response
-        if (errorResponse.error && errorResponse.error.message) {
-          errorMessage = `${res.status}: ${errorResponse.error.message}`;
-        } else if (res.status === 504) {
-          errorMessage = "504 Gateway Timeout: The AI service is taking too long to respond. Please try again in a few moments.";
-        } else {
-          // Provide more specific error messages based on status code
-          switch (res.status) {
-            case 400:
-              errorMessage = "400 Bad Request: The request was invalid or cannot be served.";
-              break;
-            case 401:
-              errorMessage = "401 Unauthorized: Please check your API key.";
-              break;
-            case 403:
-              errorMessage = "403 Forbidden: Access to the requested resource is forbidden.";
-              break;
-            case 429:
-              errorMessage = "429 Too Many Requests: You have exceeded the API rate limit.";
-              break;
-            case 500:
-              errorMessage = "500 Internal Server Error: Something went wrong on the server.";
-              break;
-            case 503:
-              errorMessage = "503 Service Unavailable: The service is temporarily unavailable.";
-              break;
-            default:
-              errorMessage = `API request failed with status ${res.status}: ${res.statusText}`;
-          }
-        }
-
-        throw new Error(errorMessage);
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
       }
 
-      const data = await res.json();
-
-      // Extract the response text
-      if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
-        const responseText = data.candidates[0].content.parts[0].text;
-        return responseText;
-      } else {
-        throw new Error("Invalid API response structure");
-      }
+      return response.body.getReader();
     } catch (error) {
       console.error("Error calling Gemini API:", error);
       throw error;
     }
   };
 
-  // Generate response using Gemini API
-  const generateResponse = async (userMessage) => {
+  // Generate response using streaming Gemini API
+  const generateResponseStream = async (userMessage) => {
     setIsGenerating(true);
 
     // Add user message
@@ -434,60 +375,104 @@ export default function CampaignChat() {
     // Add initial assistant message
     const assistantMsgId = Date.now() + 1;
     const assistantMsg = { id: assistantMsgId, role: 'assistant', content: '', isGenerating: true };
-    const updatedMessages = [...newMessages, assistantMsg];
-    setMessages(updatedMessages);
-
-    // Update messages in current chat history
-    if (currentChatId) {
-      setChatHistories(prev => {
-        return prev.map(chat =>
-          chat.id === currentChatId
-            ? { ...chat, messages: updatedMessages, lastUsed: new Date().toISOString() }
-            : chat
-        );
-      });
-    }
+    
+    // Update messages with the initial assistant message
+    setMessages(prevMessages => {
+      const updatedMessages = [...prevMessages, assistantMsg];
+      
+      // Update messages in current chat history
+      if (currentChatId) {
+        setChatHistories(prev => {
+          return prev.map(chat =>
+            chat.id === currentChatId
+              ? { ...chat, messages: updatedMessages, lastUsed: new Date().toISOString() }
+              : chat
+          );
+        });
+      }
+      
+      return updatedMessages;
+    });
 
     try {
-      const response = await callGeminiAPI(userMessage);
-
-      // Update assistant message with the response
-      const finalMessages = updatedMessages.map(msg =>
-        msg.id === assistantMsgId
-          ? { ...msg, content: response, isGenerating: false }
-          : msg
-      );
-      setMessages(finalMessages);
-
-      // Update messages in current chat history
-      if (currentChatId) {
-        setChatHistories(prev => {
-          return prev.map(chat =>
-            chat.id === currentChatId
-              ? { ...chat, messages: finalMessages, lastUsed: new Date().toISOString() }
-              : chat
+      const reader = await callGeminiAPIStream(userMessage);
+      const decoder = new TextDecoder();
+      
+      let accumulatedContent = '';
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value, { stream: true });
+        accumulatedContent = accumulatedContent + chunk;
+        
+        // Update assistant message with the accumulated content
+        setMessages(prevMessages => {
+          const updatedMessages = prevMessages.map(msg =>
+            msg.id === assistantMsgId
+              ? { ...msg, content: accumulatedContent }
+              : msg
           );
+          
+          // Update messages in current chat history
+          if (currentChatId) {
+            setChatHistories(prev => {
+              return prev.map(chat =>
+                chat.id === currentChatId
+                  ? { ...chat, messages: updatedMessages, lastUsed: new Date().toISOString() }
+                  : chat
+              );
+            });
+          }
+          
+          return updatedMessages;
         });
       }
+      
+      // Final update to mark as not generating
+      setMessages(prevMessages => {
+        const finalMessages = prevMessages.map(msg =>
+          msg.id === assistantMsgId
+            ? { ...msg, content: accumulatedContent, isGenerating: false }
+            : msg
+        );
+        
+        // Update messages in current chat history
+        if (currentChatId) {
+          setChatHistories(prev => {
+            return prev.map(chat =>
+              chat.id === currentChatId
+                ? { ...chat, messages: finalMessages, lastUsed: new Date().toISOString() }
+                : chat
+            );
+          });
+        }
+        
+        return finalMessages;
+      });
     } catch (error) {
       // Handle error case
-      const errorMessages = updatedMessages.map(msg =>
-        msg.id === assistantMsgId
-          ? { ...msg, content: `Error: ${error.message}. Please try again.`, isGenerating: false }
-          : msg
-      );
-      setMessages(errorMessages);
-
-      // Update messages in current chat history
-      if (currentChatId) {
-        setChatHistories(prev => {
-          return prev.map(chat =>
-            chat.id === currentChatId
-              ? { ...chat, messages: errorMessages, lastUsed: new Date().toISOString() }
-              : chat
-          );
-        });
-      }
+      setMessages(prevMessages => {
+        const errorMessages = prevMessages.map(msg =>
+          msg.id === assistantMsgId
+            ? { ...msg, content: `Error: ${error.message}. Please try again.`, isGenerating: false }
+            : msg
+        );
+        
+        // Update messages in current chat history
+        if (currentChatId) {
+          setChatHistories(prev => {
+            return prev.map(chat =>
+              chat.id === currentChatId
+                ? { ...chat, messages: errorMessages, lastUsed: new Date().toISOString() }
+                : chat
+            );
+          });
+        }
+        
+        return errorMessages;
+      });
     }
 
     setIsGenerating(false);
@@ -497,7 +482,7 @@ export default function CampaignChat() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (inputValue.trim() && selectedSources.length > 0 && selectedChannels.length > 0 && !isGenerating) {
-      generateResponse(inputValue);
+      generateResponseStream(inputValue);
       setInputValue('');
     }
   };
