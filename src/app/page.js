@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { Search, Globe, Grid3X3, User, Plus, Sparkles, Image as ImageIcon, MapPin, Paperclip, Mic, ChevronDown, ChevronUp, Trash2, Edit3, HomeIcon, Settings, Megaphone } from "lucide-react";
 import { marked } from 'marked';
 import hljs from 'highlight.js';
@@ -37,10 +37,10 @@ const MarkdownContent = ({ content }) => {
           breaks: true,
           gfm: true
         });
-        
+
         const html = marked(content);
         setRenderedContent(html);
-        
+
         // Re-highlight after setting content
         setTimeout(() => {
           if (typeof window !== 'undefined') {
@@ -67,11 +67,11 @@ const MarkdownContent = ({ content }) => {
 export default function CampaignChat() {
   // Available data sources and channels
   const dataSources = [
-    'GTM', 'Facebook Pixel', 'Google Ads Tag', 'Facebook Page', 
-    'Website', 'Shopify', 'CRMs', 'Twitter Page', 'Review Sites', 
+    'GTM', 'Facebook Pixel', 'Google Ads Tag', 'Facebook Page',
+    'Website', 'Shopify', 'CRMs', 'Twitter Page', 'Review Sites',
     'Ad Managers (Meta, Google, Tiktok, etc.)'
   ];
-  
+
   const channels = [
     'Email', 'SMS', 'Push', 'WhatsApp', 'Voice', 'Messenger', 'Ads'
   ];
@@ -320,14 +320,17 @@ export default function CampaignChat() {
     const savedChatHistories = localStorage.getItem('campaignChatHistories');
     if (savedChatHistories) {
       const parsedHistories = JSON.parse(savedChatHistories);
-      setChatHistories(parsedHistories);
-      
+      // Sort chats by lastUsed timestamp (newest first)
+      const sortedChats = parsedHistories.sort((a, b) => {
+        const timeA = a.lastUsed || a.createdAt;
+        const timeB = b.lastUsed || b.createdAt;
+        return new Date(timeB) - new Date(timeA);
+      });
+      setChatHistories(sortedChats);
+
       // If there are chat histories, set the first one as current
-      if (parsedHistories.length > 0 && !currentChatId) {
-        setCurrentChatId(parsedHistories[0].id);
-        setSelectedSources(parsedHistories[0].sources || []);
-        setSelectedChannels(parsedHistories[0].channels || []);
-        setMessages(parsedHistories[0].messages || []);
+      if (sortedChats.length > 0 && !currentChatId) {
+        setCurrentChatId(sortedChats[0].id);
       }
     } else {
       // Initialize with an empty chat history
@@ -337,30 +340,39 @@ export default function CampaignChat() {
         sources: [],
         channels: [],
         messages: [],
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        lastUsed: new Date().toISOString()
       };
       setChatHistories([newChat]);
       setCurrentChatId(newChat.id);
     }
-    
+
     // Load selections from localStorage if no current chat
     if (!currentChatId) {
       const savedSources = localStorage.getItem('selectedSources');
       if (savedSources) {
         setSelectedSources(JSON.parse(savedSources));
       }
-      
+
       const savedChannels = localStorage.getItem('selectedChannels');
       if (savedChannels) {
         setSelectedChannels(JSON.parse(savedChannels));
       }
     }
-  }, []);
+  }, []); // Only run on mount
 
-  // Save chat histories to localStorage whenever they change
+  // Sort chat histories and save to localStorage whenever they change
   useEffect(() => {
     if (chatHistories.length > 0) {
-      localStorage.setItem('campaignChatHistories', JSON.stringify(chatHistories));
+      // Sort chats by lastUsed timestamp (newest first)
+      const sortedChats = [...chatHistories].sort((a, b) => {
+        const timeA = a.lastUsed || a.createdAt;
+        const timeB = b.lastUsed || b.createdAt;
+        return new Date(timeB) - new Date(timeA);
+      });
+
+      // Save to localStorage only if order changed
+      localStorage.setItem('campaignChatHistories', JSON.stringify(sortedChats));
     }
   }, [chatHistories]);
 
@@ -381,15 +393,28 @@ export default function CampaignChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Re-highlight code blocks after messages update
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof window !== 'undefined') {
-      // Small delay to ensure DOM is updated
-      setTimeout(() => {
-        hljs.highlightAll();
-      }, 10);
+      hljs.highlightAll();
     }
-  }, [messages]);
+  }); // Only run when messages change
+
+  // Update lastUsed timestamp for the current chat
+  useEffect(() => {
+    if (currentChatId) {
+      // Update lastUsed timestamp for the current chat
+      setChatHistories(prev => {
+        const updated = prev.map(chat =>
+          chat.id === currentChatId
+            ? { ...chat, lastUsed: new Date().toISOString() }
+            : chat
+        );
+        // Save to localStorage
+        localStorage.setItem('campaignChatHistories', JSON.stringify(updated));
+        return updated;
+      });
+    }
+  }, [currentChatId]);
 
   // Toggle data source selection
   const toggleSource = (source) => {
@@ -401,15 +426,15 @@ export default function CampaignChat() {
     } else {
       newSources = selectedSources;
     }
-    
+
     // Update selected sources in state
     setSelectedSources(newSources);
-    
+
     // Update selected sources in current chat history
     if (currentChatId) {
-      setChatHistories(prev => prev.map(chat => 
-        chat.id === currentChatId 
-          ? { ...chat, sources: newSources } 
+      setChatHistories(prev => prev.map(chat =>
+        chat.id === currentChatId
+          ? { ...chat, sources: newSources, lastUsed: new Date().toISOString() }
           : chat
       ));
     }
@@ -425,15 +450,15 @@ export default function CampaignChat() {
     } else {
       newChannels = selectedChannels;
     }
-    
+
     // Update selected channels in state
     setSelectedChannels(newChannels);
-    
+
     // Update selected channels in current chat history
     if (currentChatId) {
-      setChatHistories(prev => prev.map(chat => 
-        chat.id === currentChatId 
-          ? { ...chat, channels: newChannels } 
+      setChatHistories(prev => prev.map(chat =>
+        chat.id === currentChatId
+          ? { ...chat, channels: newChannels, lastUsed: new Date().toISOString() }
           : chat
       ));
     }
@@ -466,7 +491,7 @@ export default function CampaignChat() {
   const callGeminiAPI = async (userMessage) => {
     const apiKey = "AIzaSyCWNitg9VDgrumBz2dA1HXJsQ8G76ALBpA";
     const model = "gemini-2.5-pro";
-    
+
     // Create system prompt with context about the data sources and campaign creation
     const systemPrompt = `You are a marketing campaign expert AI assistant. Your purpose is to help users create JSON payloads for executable marketing campaigns based on user data from various sources.
     
@@ -538,13 +563,13 @@ export default function CampaignChat() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [
-            { 
-              role: "user", 
+            {
+              role: "user",
               parts: [
-                { 
-                  text: `System: ${systemPrompt}\n\nUser: ${userMessage}` 
+                {
+                  text: `System: ${systemPrompt}\n\nUser: ${userMessage}`
                 }
-              ] 
+              ]
             }
           ],
           generationConfig: {
@@ -554,11 +579,46 @@ export default function CampaignChat() {
       });
 
       if (!res.ok) {
-        throw new Error(`API request failed with status ${res.status}`);
+        // Try to parse the error response
+        const errorResponse = await res.json().catch(() => ({}));
+        let errorMessage = `API request failed with status ${res.status}`;
+        
+        // Check if there's a specific error message in the response
+        if (errorResponse.error && errorResponse.error.message) {
+          errorMessage = `${res.status}: ${errorResponse.error.message}`;
+        } else if (res.status === 504) {
+          errorMessage = "504 Gateway Timeout: The AI service is taking too long to respond. Please try again in a few moments.";
+        } else {
+          // Provide more specific error messages based on status code
+          switch (res.status) {
+            case 400:
+              errorMessage = "400 Bad Request: The request was invalid or cannot be served.";
+              break;
+            case 401:
+              errorMessage = "401 Unauthorized: Please check your API key.";
+              break;
+            case 403:
+              errorMessage = "403 Forbidden: Access to the requested resource is forbidden.";
+              break;
+            case 429:
+              errorMessage = "429 Too Many Requests: You have exceeded the API rate limit.";
+              break;
+            case 500:
+              errorMessage = "500 Internal Server Error: Something went wrong on the server.";
+              break;
+            case 503:
+              errorMessage = "503 Service Unavailable: The service is temporarily unavailable.";
+              break;
+            default:
+              errorMessage = `API request failed with status ${res.status}: ${res.statusText}`;
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await res.json();
-      
+
       // Extract the response text
       if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
         const responseText = data.candidates[0].content.parts[0].text;
@@ -575,74 +635,82 @@ export default function CampaignChat() {
   // Generate response using Gemini API
   const generateResponse = async (userMessage) => {
     setIsGenerating(true);
-    
+
     // Add user message
     const userMsg = { id: Date.now(), role: 'user', content: userMessage };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
-    
-    // Update messages in current chat history
+
+    // Update messages in current chat history and lastUsed timestamp
     if (currentChatId) {
-      setChatHistories(prev => prev.map(chat => 
-        chat.id === currentChatId 
-          ? { ...chat, messages: newMessages } 
-          : chat
-      ));
+      setChatHistories(prev => {
+        return prev.map(chat =>
+          chat.id === currentChatId
+            ? { ...chat, messages: newMessages, lastUsed: new Date().toISOString() }
+            : chat
+        );
+      });
     }
-    
+
     // Add initial assistant message
     const assistantMsgId = Date.now() + 1;
     const assistantMsg = { id: assistantMsgId, role: 'assistant', content: '', isGenerating: true };
     const updatedMessages = [...newMessages, assistantMsg];
     setMessages(updatedMessages);
-    
+
     // Update messages in current chat history
     if (currentChatId) {
-      setChatHistories(prev => prev.map(chat => 
-        chat.id === currentChatId 
-          ? { ...chat, messages: updatedMessages } 
-          : chat
-      ));
+      setChatHistories(prev => {
+        return prev.map(chat =>
+          chat.id === currentChatId
+            ? { ...chat, messages: updatedMessages, lastUsed: new Date().toISOString() }
+            : chat
+        );
+      });
     }
-    
+
     try {
       const response = await callGeminiAPI(userMessage);
-      
+
       // Update assistant message with the response
-      const finalMessages = updatedMessages.map(msg => 
-        msg.id === assistantMsgId 
+      const finalMessages = updatedMessages.map(msg =>
+        msg.id === assistantMsgId
           ? { ...msg, content: response, isGenerating: false }
           : msg
       );
       setMessages(finalMessages);
-      
+
       // Update messages in current chat history
       if (currentChatId) {
-        setChatHistories(prev => prev.map(chat => 
-          chat.id === currentChatId 
-            ? { ...chat, messages: finalMessages } 
-            : chat
-        ));
+        setChatHistories(prev => {
+          return prev.map(chat =>
+            chat.id === currentChatId
+              ? { ...chat, messages: finalMessages, lastUsed: new Date().toISOString() }
+              : chat
+          );
+        });
       }
     } catch (error) {
       // Handle error case
-      const errorMessages = updatedMessages.map(msg => 
-        msg.id === assistantMsgId 
+      const errorMessages = updatedMessages.map(msg =>
+        msg.id === assistantMsgId
           ? { ...msg, content: `Error: ${error.message}. Please try again.`, isGenerating: false }
           : msg
       );
       setMessages(errorMessages);
-      
+
       // Update messages in current chat history
       if (currentChatId) {
-        setChatHistories(prev => prev.map(chat => 
-          chat.id === currentChatId 
-            ? { ...chat, messages: errorMessages } 
-            : chat
-        ));
+        setChatHistories(prev => {
+          return prev.map(chat =>
+            chat.id === currentChatId
+              ? { ...chat, messages: errorMessages, lastUsed: new Date().toISOString() }
+              : chat
+          );
+        });
       }
     }
-    
+
     setIsGenerating(false);
   };
 
@@ -658,14 +726,16 @@ export default function CampaignChat() {
   // Clear current chat history
   const clearCurrentChat = () => {
     setMessages([]);
-    
-    // Update messages in current chat history
+
+    // Update messages in current chat history and lastUsed timestamp
     if (currentChatId) {
-      setChatHistories(prev => prev.map(chat => 
-        chat.id === currentChatId 
-          ? { ...chat, messages: [] } 
-          : chat
-      ));
+      setChatHistories(prev => {
+        return prev.map(chat =>
+          chat.id === currentChatId
+            ? { ...chat, messages: [], lastUsed: new Date().toISOString() }
+            : chat
+        );
+      });
     }
   };
 
@@ -677,10 +747,12 @@ export default function CampaignChat() {
       sources: [],
       channels: [],
       messages: [],
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      lastUsed: new Date().toISOString()
     };
-    
-    setChatHistories(prev => [...prev, newChat]);
+
+    // Add new chat to the beginning of the list
+    setChatHistories(prev => [newChat, ...prev]);
     setCurrentChatId(newChat.id);
     setSelectedSources([]);
     setSelectedChannels([]);
@@ -695,16 +767,16 @@ export default function CampaignChat() {
   // Delete a chat
   const deleteChat = (chatId, e) => {
     e.stopPropagation();
-    
+
     if (chatHistories.length <= 1) {
       // If this is the last chat, clear it instead of deleting
       clearCurrentChat();
       return;
     }
-    
+
     const updatedChats = chatHistories.filter(chat => chat.id !== chatId);
     setChatHistories(updatedChats);
-    
+
     // If we deleted the current chat, switch to the first available chat
     if (chatId === currentChatId && updatedChats.length > 0) {
       setCurrentChatId(updatedChats[0].id);
@@ -721,11 +793,13 @@ export default function CampaignChat() {
   // Save edited chat name
   const saveEditedChatName = (chatId) => {
     if (editingChatName.trim()) {
-      setChatHistories(prev => prev.map(chat => 
-        chat.id === chatId 
-          ? { ...chat, name: editingChatName.trim() } 
-          : chat
-      ));
+      setChatHistories(prev => {
+        return prev.map(chat =>
+          chat.id === chatId
+            ? { ...chat, name: editingChatName.trim() }
+            : chat
+        );
+      });
     }
     setEditingChatId(null);
     setEditingChatName('');
@@ -735,6 +809,24 @@ export default function CampaignChat() {
   const handleEditKeyDown = (chatId, e) => {
     if (e.key === 'Enter') {
       saveEditedChatName(chatId);
+    }
+  };
+
+  // Format last used time to readable format
+  const formatLastUsed = (timestamp) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = (now - date) / (1000 * 60 * 60);
+
+    if (diffInHours < 1) {
+      const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+      return diffInMinutes <= 1 ? 'Just now' : `${diffInMinutes} mins ago`;
+    } else if (diffInHours < 24) {
+      const hours = Math.floor(diffInHours);
+      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    } else {
+      const days = Math.floor(diffInHours / 24);
+      return `${days} day${days > 1 ? 's' : ''} ago`;
     }
   };
 
@@ -762,7 +854,7 @@ export default function CampaignChat() {
 
   // Render panel content based on active nav item
   const renderPanelContent = () => {
-    switch(activeNavPanel) {
+    switch (activeNavPanel) {
       case 'home':
         return (
           <>
@@ -772,7 +864,7 @@ export default function CampaignChat() {
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-medium text-[var(--foreground)]">Recent Chats</h3>
-                  <button 
+                  <button
                     onClick={createNewChat}
                     className="text-xs text-[var(--button-primary)] hover:underline"
                   >
@@ -781,13 +873,12 @@ export default function CampaignChat() {
                 </div>
                 <div className="space-y-1 max-h-96 overflow-y-auto">
                   {chatHistories.map(chat => (
-                    <div 
+                    <div
                       key={chat.id}
-                      className={`flex items-center justify-between px-3 py-2 rounded-md text-sm cursor-pointer ${
-                        chat.id === currentChatId
+                      className={`flex items-center justify-between px-3 py-2 rounded-md text-sm cursor-pointer ${chat.id === currentChatId
                           ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
                           : 'bg-[var(--card-background)] border border-[var(--card-border)] hover:bg-[var(--nav-hover)]'
-                      }`}
+                        }`}
                       onClick={() => switchToChat(chat.id)}
                     >
                       {editingChatId === chat.id ? (
@@ -801,12 +892,15 @@ export default function CampaignChat() {
                           className="bg-transparent border-b border-[var(--input-border)] focus:outline-none w-full"
                         />
                       ) : (
-                        <div className="flex items-center">
-                          <span 
+                        <div className="flex flex-col">
+                          <span
                             className="text-[var(--foreground)] truncate max-w-[180px]"
                             onDoubleClick={(e) => startEditingChatName(chat.id, chat.name, e)}
                           >
                             {chat.name}
+                          </span>
+                          <span className="text-xs text-[var(--sidebar-foreground)]">
+                            {formatLastUsed(chat.lastUsed || chat.createdAt)}
                           </span>
                         </div>
                       )}
@@ -829,8 +923,8 @@ export default function CampaignChat() {
                 </div>
               </div>
             </div>
-            
-              {/* Navigation Links */}
+
+            {/* Navigation Links */}
             <div className="pt-4 border-t border-[var(--sidebar-border)]">
               <ul className="space-y-2">
                 <li>
@@ -866,22 +960,21 @@ export default function CampaignChat() {
         return (
           <>
             <h2 className="text-lg font-semibold mb-4 text-[var(--sidebar-primary)]">Configuration</h2>
-            
+
             <div className="flex-1 overflow-y-auto">
               {/* Data Sources */}
               <div className="mb-6">
                 <h3 className="font-medium mb-2 text-[var(--foreground)]">Data Sources (Select up to 3)</h3>
                 <div className="space-y-2">
                   {dataSources.map(source => (
-                    <div 
+                    <div
                       key={source}
-                      className={`rounded-md text-sm ${
-                        selectedSources.includes(source)
+                      className={`rounded-md text-sm ${selectedSources.includes(source)
                           ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
                           : 'bg-[var(--card-background)] border border-[var(--card-border)]'
-                      }`}
+                        }`}
                     >
-                      <div 
+                      <div
                         className="flex items-center justify-between px-3 py-2 cursor-pointer"
                         onClick={() => toggleSourceAccordion(source)}
                       >
@@ -897,23 +990,22 @@ export default function CampaignChat() {
                               e.stopPropagation();
                               toggleSource(source);
                             }}
-                            className={`ml-2 px-2 py-1 rounded text-xs ${
-                              selectedSources.includes(source)
+                            className={`ml-2 px-2 py-1 rounded text-xs ${selectedSources.includes(source)
                                 ? 'bg-[var(--button-primary)] text-white'
                                 : selectedSources.length >= 3 && !selectedSources.includes(source)
                                   ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
                                   : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
-                            }`}
+                              }`}
                             disabled={!selectedSources.includes(source) && selectedSources.length >= 3}
                           >
                             {selectedSources.includes(source) ? 'Connected' : 'Connect'}
                           </button>
                         </div>
                       </div>
-                      
+
                       {expandedSource === source && (
                         <div className="px-3 pb-2">
-                          <button 
+                          <button
                             onClick={() => openDataModal(source)}
                             className="text-xs text-[var(--button-primary)] hover:underline"
                           >
@@ -928,30 +1020,28 @@ export default function CampaignChat() {
                   Selected: {selectedSources.length}/3
                 </p>
               </div>
-              
+
               {/* Channels */}
               <div>
                 <h3 className="font-medium mb-2 text-[var(--foreground)]">Channels (Select up to 4)</h3>
                 <div className="space-y-2">
                   {channels.map(channel => (
-                    <div 
+                    <div
                       key={channel}
-                      className={`flex items-center justify-between px-3 py-2 rounded-md text-sm ${
-                        selectedChannels.includes(channel)
+                      className={`flex items-center justify-between px-3 py-2 rounded-md text-sm ${selectedChannels.includes(channel)
                           ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
-                        : 'bg-[var(--card-background)] border border-[var(--card-border)]'
-                      }`}
+                          : 'bg-[var(--card-background)] border border-[var(--card-border)]'
+                        }`}
                     >
                       <span className="text-[var(--foreground)]">{channel}</span>
                       <button
                         onClick={() => toggleChannel(channel)}
-                        className={`px-2 py-1 rounded text-xs ${
-                          selectedChannels.includes(channel)
+                        className={`px-2 py-1 rounded text-xs ${selectedChannels.includes(channel)
                             ? 'bg-[var(--button-primary)] text-white'
                             : selectedChannels.length >= 4 && !selectedChannels.includes(channel)
                               ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
                               : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
-                        }`}
+                          }`}
                         disabled={!selectedChannels.includes(channel) && selectedChannels.length >= 4}
                       >
                         {selectedChannels.includes(channel) ? 'Connected' : 'Connect'}
@@ -984,13 +1074,13 @@ export default function CampaignChat() {
         return (
           <>
             <h2 className="text-lg font-semibold mb-4 text-[var(--sidebar-primary)]">Configuration</h2>
-            
+
             <div className="flex-1 overflow-y-auto">
               {/* Chat History Section */}
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-medium text-[var(--foreground)]">Chat History</h3>
-                  <button 
+                  <button
                     onClick={createNewChat}
                     className="text-xs text-[var(--button-primary)] hover:underline"
                   >
@@ -999,13 +1089,12 @@ export default function CampaignChat() {
                 </div>
                 <div className="space-y-1 max-h-40 overflow-y-auto">
                   {chatHistories.map(chat => (
-                    <div 
+                    <div
                       key={chat.id}
-                      className={`flex items-center justify-between px-3 py-2 rounded-md text-sm cursor-pointer ${
-                        chat.id === currentChatId
+                      className={`flex items-center justify-between px-3 py-2 rounded-md text-sm cursor-pointer ${chat.id === currentChatId
                           ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
                           : 'bg-[var(--card-background)] border border-[var(--card-border)] hover:bg-[var(--nav-hover)]'
-                      }`}
+                        }`}
                       onClick={() => switchToChat(chat.id)}
                     >
                       {editingChatId === chat.id ? (
@@ -1020,7 +1109,7 @@ export default function CampaignChat() {
                         />
                       ) : (
                         <div className="flex items-center">
-                          <span 
+                          <span
                             className="text-[var(--foreground)] truncate max-w-[180px]"
                             onDoubleClick={(e) => startEditingChatName(chat.id, chat.name, e)}
                           >
@@ -1046,21 +1135,20 @@ export default function CampaignChat() {
                   ))}
                 </div>
               </div>
-              
+
               {/* Data Sources */}
               <div className="mb-6">
                 <h3 className="font-medium mb-2 text-[var(--foreground)]">Data Sources (Select up to 3)</h3>
                 <div className="space-y-2">
                   {dataSources.map(source => (
-                    <div 
+                    <div
                       key={source}
-                      className={`rounded-md text-sm ${
-                        selectedSources.includes(source)
+                      className={`rounded-md text-sm ${selectedSources.includes(source)
                           ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
                           : 'bg-[var(--card-background)] border border-[var(--card-border)]'
-                      }`}
+                        }`}
                     >
-                      <div 
+                      <div
                         className="flex items-center justify-between px-3 py-2 cursor-pointer"
                         onClick={() => toggleSourceAccordion(source)}
                       >
@@ -1076,23 +1164,22 @@ export default function CampaignChat() {
                               e.stopPropagation();
                               toggleSource(source);
                             }}
-                            className={`ml-2 px-2 py-1 rounded text-xs ${
-                              selectedSources.includes(source)
+                            className={`ml-2 px-2 py-1 rounded text-xs ${selectedSources.includes(source)
                                 ? 'bg-[var(--button-primary)] text-white'
                                 : selectedSources.length >= 3 && !selectedSources.includes(source)
                                   ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
                                   : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
-                            }`}
+                              }`}
                             disabled={!selectedSources.includes(source) && selectedSources.length >= 3}
                           >
                             {selectedSources.includes(source) ? 'Connected' : 'Connect'}
                           </button>
                         </div>
                       </div>
-                      
+
                       {expandedSource === source && (
                         <div className="px-3 pb-2">
-                          <button 
+                          <button
                             onClick={() => openDataModal(source)}
                             className="text-xs text-[var(--button-primary)] hover:underline"
                           >
@@ -1107,30 +1194,28 @@ export default function CampaignChat() {
                   Selected: {selectedSources.length}/3
                 </p>
               </div>
-              
+
               {/* Channels */}
               <div>
                 <h3 className="font-medium mb-2 text-[var(--foreground)]">Channels (Select up to 4)</h3>
                 <div className="space-y-2">
                   {channels.map(channel => (
-                    <div 
+                    <div
                       key={channel}
-                      className={`flex items-center justify-between px-3 py-2 rounded-md text-sm ${
-                        selectedChannels.includes(channel)
+                      className={`flex items-center justify-between px-3 py-2 rounded-md text-sm ${selectedChannels.includes(channel)
                           ? 'bg-[var(--button-primary)]/20 border border-[var(--button-primary)]/50'
-                        : 'bg-[var(--card-background)] border border-[var(--card-border)]'
-                      }`}
+                          : 'bg-[var(--card-background)] border border-[var(--card-border)]'
+                        }`}
                     >
                       <span className="text-[var(--foreground)]">{channel}</span>
                       <button
                         onClick={() => toggleChannel(channel)}
-                        className={`px-2 py-1 rounded text-xs ${
-                          selectedChannels.includes(channel)
+                        className={`px-2 py-1 rounded text-xs ${selectedChannels.includes(channel)
                             ? 'bg-[var(--button-primary)] text-white'
                             : selectedChannels.length >= 4 && !selectedChannels.includes(channel)
                               ? 'bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] opacity-50 cursor-not-allowed'
                               : 'bg-[var(--nav-hover)] text-[var(--foreground)]'
-                        }`}
+                          }`}
                         disabled={!selectedChannels.includes(channel) && selectedChannels.length >= 4}
                       >
                         {selectedChannels.includes(channel) ? 'Connected' : 'Connect'}
@@ -1143,7 +1228,7 @@ export default function CampaignChat() {
                 </p>
               </div>
             </div>
-            
+
             {/* Navigation Links */}
             <div className="pt-4 border-t border-[var(--sidebar-border)]">
               <ul className="space-y-2">
@@ -1182,7 +1267,7 @@ export default function CampaignChat() {
   return (
     <div className="flex h-screen bg-[var(--background)] text-[var(--foreground)] font-sans">
       {/* Sidebar */}
-      <div 
+      <div
         className="flex flex-col h-screen w-16 bg-[var(--sidebar-background)] border-r border-[var(--sidebar-border)] relative z-20"
         onMouseEnter={() => setIsSidebarHovered(true)}
         onMouseLeave={() => setIsSidebarHovered(false)}
@@ -1194,7 +1279,7 @@ export default function CampaignChat() {
 
         {/* Add button */}
         <div className="p-3">
-          <button 
+          <button
             className="w-10 h-10 p-0 rounded-full hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] flex items-center justify-center transition-colors"
             onClick={createNewChat}
           >
@@ -1208,11 +1293,10 @@ export default function CampaignChat() {
             {navItems.map((item) => (
               <button
                 key={item.id}
-                className={`w-10 h-10 p-0 flex flex-col items-center justify-center gap-1 rounded-full transition-colors ${
-                  activeNavPanel === item.id 
-                    ? "text-[var(--sidebar-primary)] bg-[var(--sidebar-accent)]" 
+                className={`w-10 h-10 p-0 flex flex-col items-center justify-center gap-1 rounded-full transition-colors ${activeNavPanel === item.id
+                    ? "text-[var(--sidebar-primary)] bg-[var(--sidebar-accent)]"
                     : "text-[var(--sidebar-foreground)] hover:bg-[var(--nav-hover)]"
-                }`}
+                  }`}
                 onClick={() => setActiveNavPanel(item.id)}
                 onMouseEnter={() => setActiveNavPanel(item.id)}
               >
@@ -1231,10 +1315,9 @@ export default function CampaignChat() {
       </div>
 
       {/* Sidebar Panel - Slides in from left when sidebar is hovered */}
-      <div 
-        className={`fixed top-0 left-16 h-full w-80 bg-[var(--sidebar-background)] border-r border-[var(--sidebar-border)] z-10 transition-all duration-300 ease-in-out ${
-          isPanelVisible ? 'translate-x-0' : '-translate-x-full'
-        }`}
+      <div
+        className={`fixed top-0 left-16 h-full w-80 bg-[var(--sidebar-background)] border-r border-[var(--sidebar-border)] z-10 transition-all duration-300 ease-in-out ${isPanelVisible ? 'translate-x-0' : '-translate-x-full'
+          }`}
         onMouseEnter={() => setIsPanelHovered(true)}
         onMouseLeave={() => setIsPanelHovered(false)}
       >
@@ -1249,7 +1332,7 @@ export default function CampaignChat() {
         <header className="bg-[var(--background)] border-b border-[var(--search-border)] p-4 flex justify-between items-center">
           <h1 className="text-2xl font-light text-[var(--foreground)]">Campaign Optimizer - {currentChatName}</h1>
           {messages.length > 0 && (
-            <button 
+            <button
               onClick={clearCurrentChat}
               className="text-sm text-[var(--button-primary)] hover:underline"
             >
@@ -1276,13 +1359,12 @@ export default function CampaignChat() {
             ) : (
               <div className="space-y-6 max-w-3xl mx-auto">
                 {messages.map(message => (
-                  <div 
-                    key={message.id} 
-                    className={`p-4 rounded-lg ${
-                      message.role === 'user' 
-                        ? 'bg-[var(--message-user-bg)] ml-10 border border-[var(--card-border)]' 
+                  <div
+                    key={message.id}
+                    className={`p-4 rounded-lg ${message.role === 'user'
+                        ? 'bg-[var(--message-user-bg)] ml-10 border border-[var(--card-border)]'
                         : 'bg-[var(--message-assistant-bg)] mr-10 border border-[var(--card-border)]'
-                    }`}
+                      }`}
                   >
                     <div className="font-medium mb-1">
                       {message.role === 'user' ? 'You' : 'Assistant'}
@@ -1303,7 +1385,7 @@ export default function CampaignChat() {
               </div>
             )}
           </div>
-          
+
           {/* Input Area */}
           <div className="border-t border-[var(--search-border)] p-4">
             <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
@@ -1316,7 +1398,7 @@ export default function CampaignChat() {
                   className="w-full bg-transparent border-none text-lg placeholder:text-[var(--sidebar-foreground)] focus:ring-0 focus:ring-offset-0 p-0 text-[var(--foreground)] font-sans"
                   disabled={isGenerating || selectedSources.length === 0 || selectedChannels.length === 0}
                 />
-                
+
                 {/* Action Buttons */}
                 <div className="flex items-center gap-2 mt-4 pt-4 border-t border-[var(--input-border)]">
                   {actionButtons.map((action) => {
@@ -1325,19 +1407,18 @@ export default function CampaignChat() {
                       <button
                         key={action.label}
                         type="button"
-                        className={`h-8 w-8 p-0 rounded-full flex items-center justify-center transition-colors ${
-                          action.variant === "primary" 
-                            ? "bg-[var(--button-primary)] text-white hover:bg-[var(--button-primary-hover)]" 
+                        className={`h-8 w-8 p-0 rounded-full flex items-center justify-center transition-colors ${action.variant === "primary"
+                            ? "bg-[var(--button-primary)] text-white hover:bg-[var(--button-primary-hover)]"
                             : action.variant === "accent"
-                            ? "text-[var(--button-primary)] hover:bg-[var(--button-primary)]/20"
-                            : "text-[var(--sidebar-foreground)] hover:bg-[var(--nav-hover)]"
-                        }`}
+                              ? "text-[var(--button-primary)] hover:bg-[var(--button-primary)]/20"
+                              : "text-[var(--sidebar-foreground)] hover:bg-[var(--nav-hover)]"
+                          }`}
                       >
                         <Icon className="h-4 w-4" />
                       </button>
                     );
                   })}
-                  
+
                   <button
                     type="submit"
                     className="ml-auto h-8 px-3 py-1 rounded-full bg-[var(--button-primary)] text-white text-sm hover:bg-[var(--button-primary-hover)] disabled:opacity-50 flex items-center transition-colors"
@@ -1348,7 +1429,7 @@ export default function CampaignChat() {
                 </div>
               </div>
             </form>
-            
+
             {(selectedSources.length === 0 || selectedChannels.length === 0) && (
               <p className="text-sm text-red-400 mt-2 text-center">
                 Please select at least one data source and one channel to continue.
@@ -1364,7 +1445,7 @@ export default function CampaignChat() {
           <div className="bg-[var(--card-background)] border border-[var(--card-border)] rounded-lg w-full max-w-4xl max-h-[80vh] flex flex-col">
             <div className="flex justify-between items-center p-4 border-b border-[var(--card-border)]">
               <h3 className="text-lg font-semibold text-[var(--foreground)]">{modalData.title}</h3>
-              <button 
+              <button
                 onClick={closeDataModal}
                 className="text-[var(--sidebar-foreground)] hover:text-[var(--foreground)]"
               >
