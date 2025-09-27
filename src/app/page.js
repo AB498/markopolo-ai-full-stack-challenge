@@ -2,6 +2,67 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Search, Globe, Grid3X3, User, Plus, Sparkles, Image as ImageIcon, MapPin, Paperclip, Mic, ChevronDown, ChevronUp, Trash2, Edit3, HomeIcon, Settings, Megaphone } from "lucide-react";
+import { marked } from 'marked';
+import hljs from 'highlight.js';
+import 'highlight.js/styles/atom-one-dark.min.css';
+
+// Component to render markdown content
+const MarkdownContent = ({ content }) => {
+  const [renderedContent, setRenderedContent] = useState('');
+
+  useEffect(() => {
+    const parseMarkdown = async () => {
+      try {
+        // Configure marked with highlight.js for each parse
+        marked.setOptions({
+          highlight: function (code, lang) {
+            if (lang && hljs.getLanguage(lang)) {
+              try {
+                const highlighted = hljs.highlight(code, { language: lang });
+                // Add language class to the code element for CSS styling
+                return `<code class="language-${lang} hljs">${highlighted.value}</code>`;
+              } catch (error) {
+                console.error('Highlighting error:', error);
+              }
+            }
+            // Fallback to auto-detection
+            try {
+              const highlighted = hljs.highlightAuto(code);
+              return `<code class="hljs ${highlighted.language ? `language-${highlighted.language}` : ''}">${highlighted.value}</code>`;
+            } catch (error) {
+              console.error('Auto-highlighting error:', error);
+              return `<code class="hljs">${code}</code>`;
+            }
+          },
+          breaks: true,
+          gfm: true
+        });
+        
+        const html = marked(content);
+        setRenderedContent(html);
+        
+        // Re-highlight after setting content
+        setTimeout(() => {
+          if (typeof window !== 'undefined') {
+            hljs.highlightAll();
+          }
+        }, 10);
+      } catch (error) {
+        console.error('Markdown parsing error:', error);
+        setRenderedContent(`<div>${content}</div>`); // Fallback to raw content in a div
+      }
+    };
+    parseMarkdown();
+  }, [content]);
+
+  return (
+    <div
+      className="markdown-content"
+      dangerouslySetInnerHTML={{ __html: renderedContent }}
+    />
+  );
+};
+
 
 export default function CampaignChat() {
   // Available data sources and channels
@@ -318,6 +379,16 @@ export default function CampaignChat() {
   // Auto-scroll to bottom of messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Re-highlight code blocks after messages update
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        hljs.highlightAll();
+      }, 10);
+    }
   }, [messages]);
 
   // Toggle data source selection
@@ -1217,7 +1288,11 @@ export default function CampaignChat() {
                       {message.role === 'user' ? 'You' : 'Assistant'}
                     </div>
                     <div className="whitespace-pre-wrap text-[var(--foreground)]">
-                      {message.content}
+                      {message.role === 'assistant' ? (
+                        <MarkdownContent content={message.content} />
+                      ) : (
+                        <>{message.content}</>
+                      )}
                       {message.isGenerating && (
                         <span className="inline-block w-2 h-4 bg-[var(--foreground)] ml-1 animate-pulse"></span>
                       )}

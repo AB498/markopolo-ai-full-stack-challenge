@@ -80,3 +80,56 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--sidebar-primary);
 }
+
+/* Markdown content styling for proper dark theme support */
+.markdown-content {
+  color: var(--foreground);
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  color: var(--foreground);
+}
+
+.markdown-content a {
+  color: var(--sidebar-primary);
+}
+
+.markdown-content code {
+  background-color: var(--card-background);
+  border: 1px solid var(--card-border);
+  color: var(--foreground);
+}
+
+.markdown-content pre {
+  background-color: var(--card-background);
+  border: 1px solid var(--card-border);
+  color: var(--foreground);
+}
+
+.markdown-content pre code {
+  background-color: transparent;
+  border: none;
+}
+
+.markdown-content blockquote {
+  border-left: 3px solid var(--sidebar-primary);
+  color: var(--foreground);
+}
+
+.markdown-content table {
+  color: var(--foreground);
+}
+
+.markdown-content th {
+  background-color: var(--sidebar-accent);
+  color: var(--foreground);
+}
+
+.markdown-content td {
+  border: 1px solid var(--card-border);
+}
