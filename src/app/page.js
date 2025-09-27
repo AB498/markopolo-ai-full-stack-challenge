@@ -1022,62 +1022,62 @@ export default function CampaignChat() {
     <div className="flex h-screen bg-[var(--background)] text-[var(--foreground)] font-sans">
       {/* Sidebar */}
       <div
-        className="flex flex-col h-screen w-16 bg-[var(--sidebar-background)] border-r border-[var(--sidebar-border)] relative z-20"
+        className="flex flex-col h-screen w-14 sm:w-16 bg-[var(--sidebar-background)] border-r border-[var(--sidebar-border)] relative z-20"
         onMouseEnter={() => setIsSidebarHovered(true)}
         onMouseLeave={() => setIsSidebarHovered(false)}
       >
         {/* Logo */}
-        <div className="flex items-center justify-center h-16 border-b border-[var(--sidebar-border)]">
-          <Sparkles className="h-6 w-6 text-[var(--sidebar-primary)]" />
+        <div className="flex items-center justify-center h-14 sm:h-16 border-b border-[var(--sidebar-border)]">
+          <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-[var(--sidebar-primary)]" />
         </div>
 
         {/* Add button */}
-        <div className="p-3">
+        <div className="p-2 sm:p-3">
           <button
-            className={`w-10 h-10 p-0 rounded-full hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] flex items-center justify-center transition-colors ${messages.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`w-8 h-8 sm:w-10 sm:h-10 p-0 rounded-full hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] flex items-center justify-center transition-colors ${messages.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={createNewChat}
             disabled={messages.length === 0}
             title={messages.length === 0 ? "Add a message to current chat before creating a new one" : "Create new chat"}
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-2">
-          <div className="space-y-2">
+        <nav className="flex-1 px-2 sm:px-3 py-2">
+          <div className="space-y-1 sm:space-y-2">
             {navItems.map((item) => (
               <button
                 key={item.id}
-                className={`w-10 h-10 p-0 flex flex-col items-center justify-center gap-1 rounded-full transition-colors ${activeNavPanel === item.id
+                className={`w-8 h-8 sm:w-10 sm:h-10 p-0 flex flex-col items-center justify-center gap-1 rounded-full transition-colors ${activeNavPanel === item.id
                   ? "text-[var(--sidebar-primary)] bg-[var(--sidebar-accent)]"
                   : "text-[var(--sidebar-foreground)] hover:bg-[var(--nav-hover)]"
                   }`}
                 onClick={() => setActiveNavPanel(item.id)}
                 onMouseEnter={() => setActiveNavPanel(item.id)}
               >
-                <item.icon className="h-5 w-5" />
+                <item.icon className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
             ))}
           </div>
         </nav>
 
         {/* User */}
-        <div className="p-3 border-t border-[var(--sidebar-border)]">
-          <button className="w-10 h-10 p-0 rounded-full hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] flex items-center justify-center transition-colors">
-            <User className="h-5 w-5" />
+        <div className="p-2 sm:p-3 border-t border-[var(--sidebar-border)]">
+          <button className="w-8 h-8 sm:w-10 sm:h-10 p-0 rounded-full hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)] flex items-center justify-center transition-colors">
+            <User className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
         </div>
       </div>
 
       {/* Sidebar Panel - Slides in from left when sidebar is hovered */}
       <div
-        className={`fixed top-0 left-16 h-full w-80 bg-[var(--sidebar-background)] border-r border-[var(--sidebar-border)] z-10 transition-all duration-300 ease-in-out ${isPanelVisible ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed top-0 left-14 sm:left-16 h-full w-64 sm:w-80 bg-[var(--sidebar-background)] border-r border-[var(--sidebar-border)] z-10 transition-all duration-300 ease-in-out ${isPanelVisible ? 'translate-x-0' : '-translate-x-full'
           }`}
         onMouseEnter={() => setIsPanelHovered(true)}
         onMouseLeave={() => setIsPanelHovered(false)}
       >
-        <div className="p-4 h-full flex flex-col">
+        <div className="p-3 sm:p-4 h-full flex flex-col">
           {renderPanelContent()}
         </div>
       </div>
@@ -1086,7 +1086,7 @@ export default function CampaignChat() {
       <div className="flex-1 flex flex-col h-full overflow-auto">
         {/* Header */}
         <header className="bg-[var(--background)] border-b border-[var(--search-border)] p-4 flex justify-between items-center">
-          <h1 className="text-2xl font-semibold text-[var(--foreground)] line-clamp-1">Campaign Optimizer - {currentChatName}</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)] line-clamp-1">Campaign Optimizer - {currentChatName}</h1>
           {messages.length > 0 && (
             <button
               onClick={clearCurrentChat}
@@ -1100,37 +1100,58 @@ export default function CampaignChat() {
         {/* Chat Interface */}
         <div className="flex-1 flex flex-col h-full overflow-auto">
           {/* Messages Container */}
-          <div className="flex-1 overflow-y-auto p-6 h-full overflow-auto">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 h-full overflow-auto">
             {messages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-[var(--sidebar-foreground)] text-center">
-                <h3 className="leading-relaxed text-4xl font-medium mb-2">Campaign Optimizer</h3>
+              <div className="h-full flex flex-col items-center justify-center text-[var(--sidebar-foreground)] text-center px-4">
+                <h3 className="leading-relaxed text-3xl sm:text-4xl font-medium mb-2">Campaign Optimizer</h3>
+                <p className="text-sm sm:text-base text-[var(--sidebar-foreground)] max-w-md">
+                  Select data sources and channels, then ask me to create marketing campaigns.
+                </p>
               </div>
             ) : (
-              <div className="space-y-6 max-w-3xl mx-auto">
+              <div className="space-y-4 sm:space-y-6 max-w-3xl mx-auto">
                 {messages.map(message => (
                   <div
                     key={message.id}
-                    className={`p-4 rounded-lg ${message.role === 'user'
-                      ? 'bg-[var(--message-user-bg)] ml-10 border border-[var(--card-border)]'
-                      : 'bg-[var(--message-assistant-bg)] sm:mr-10 border border-[var(--card-border)]'
-                      }`}
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div className="font-medium mb-1">
-                      {message.role === 'user' ? 'You' : 'Assistant'}
+                    {message.role === 'assistant' && (
+                      <div className="flex-shrink-0 mr-2 sm:mr-3 self-start">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg text-sm sm:text-base">
+                          A
+                        </div>
+                      </div>
+                    )}
+                    <div
+                      className={`p-3 sm:p-4 rounded-lg max-w-[85%] sm:max-w-[85%] ${message.role === 'user'
+                        ? 'bg-[var(--message-user-bg)] border border-[var(--card-border)]'
+                        : 'bg-[var(--message-assistant-bg)] border border-[var(--card-border)]'
+                        }`}
+                    >
+                      <div className="font-medium mb-1 text-sm sm:text-base">
+                        {message.role === 'user' ? 'You' : 'Assistant'}
+                      </div>
+                      <div className="whitespace-pre-wrap text-[var(--foreground)] text-sm sm:text-base">
+                        {message.role === 'assistant' ? (
+                          <div
+                            className="markdown-content overflow-x-hidden"
+                            dangerouslySetInnerHTML={{ __html: marked(message.content) }}
+                          />
+                        ) : (
+                          <>{message.content}</>
+                        )}
+                        {message.isGenerating && (
+                          <span className="inline-block w-2 h-4 bg-[var(--foreground)] ml-1 animate-pulse"></span>
+                        )}
+                      </div>
                     </div>
-                    <div className="whitespace-pre-wrap text-[var(--foreground)]">
-                      {message.role === 'assistant' ? (
-                        <div
-                          className="markdown-content overflow-x-hidden"
-                          dangerouslySetInnerHTML={{ __html: marked(message.content) }}
-                        />
-                      ) : (
-                        <>{message.content}</>
-                      )}
-                      {message.isGenerating && (
-                        <span className="inline-block w-2 h-4 bg-[var(--foreground)] ml-1 animate-pulse"></span>
-                      )}
-                    </div>
+                    {message.role === 'user' && (
+                      <div className="flex-shrink-0 ml-2 sm:ml-3 self-start">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center text-white font-bold shadow-lg text-sm sm:text-base">
+                          U
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
                 <div ref={messagesEndRef} />
@@ -1139,14 +1160,14 @@ export default function CampaignChat() {
           </div>
 
           {/* Input Area */}
-          <div className="border-t border-[var(--search-border)] p-4">
+          <div className="border-t border-[var(--search-border)] p-3 sm:p-4">
             {(selectedSources.length === 0 || selectedChannels.length === 0) && (
-              <p className="text-sm text-red-400 mb-2 text-center max-w-3xl mx-auto">
+              <p className="text-xs sm:text-sm text-red-400 mb-2 text-center max-w-3xl mx-auto">
                 Please select at least one data source and one channel to continue.
               </p>
             )}
             {/* Show some exmaple prompt sentences horizontally scrollable as rounded chip like buttons */}
-            {!messages.length ? <div className="flex overflow-x-auto gap-2 py-0 mb-4 hide-scrollbar horizontal-scroll max-w-3xl mx-auto">
+            {!messages.length ? <div className="flex overflow-x-auto gap-2 py-0 mb-3 sm:mb-4 hide-scrollbar horizontal-scroll max-w-3xl mx-auto">
               {[
                 "Create a campaign to re-engage users who added items to cart but didn't purchase",
                 "Target users who viewed product pages but didn't add to cart",
@@ -1167,25 +1188,25 @@ export default function CampaignChat() {
                       }
                     }, 0);
                   }}
-                  className="flex-shrink-0 px-4 py-2 bg-[var(--card-background)] border border-[var(--card-border)] rounded-full text-sm hover:bg-[var(--button-primary)] hover:text-white transition-colors whitespace-nowrap"
+                  className="flex-shrink-0 px-3 py-1 sm:px-4 sm:py-2 bg-[var(--card-background)] border border-[var(--card-border)] rounded-full text-xs sm:text-sm hover:bg-[var(--button-primary)] hover:text-white transition-colors whitespace-nowrap"
                 >
                   {prompt}
                 </button>
               ))}
             </div> : null}
             <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-              <div className="relative bg-[var(--input-background)] border border-[var(--input-border)] rounded-xl p-4 focus-within:border-[var(--input-focus)] transition-colors">
+              <div className="relative bg-[var(--input-background)] border border-[var(--input-border)] rounded-xl p-3 sm:p-4 focus-within:border-[var(--input-focus)] transition-colors">
                 <input
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Ask anything about campaign optimization..."
-                  className="w-full bg-transparent border-none text-lg placeholder:text-[var(--sidebar-foreground)] focus:ring-0 focus:ring-offset-0 focus:outline-none p-0 text-[var(--foreground)] font-sans"
+                  className="w-full bg-transparent border-none text-base sm:text-lg placeholder:text-[var(--sidebar-foreground)] focus:ring-0 focus:ring-offset-0 focus:outline-none p-0 text-[var(--foreground)] font-sans"
                   disabled={isGenerating || selectedSources.length === 0 || selectedChannels.length === 0}
                 />
 
                 {/* Action Buttons */}
-                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-[var(--input-border)]">
+                <div className="flex items-center gap-1 sm:gap-2 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-[var(--input-border)]">
                   {actionButtons.map((action, index) => {
                     const Icon = action.icon;
                     const isActive = activeAction === index;
@@ -1194,7 +1215,7 @@ export default function CampaignChat() {
                         key={action.label}
                         type="button"
                         onClick={() => setActiveAction(index)}
-                        className={`h-8 w-8 p-0 rounded-full flex items-center justify-center transition-colors ${isActive
+                        className={`h-7 w-7 sm:h-8 sm:w-8 p-0 rounded-full flex items-center justify-center transition-colors ${isActive
                           ? "bg-[var(--button-primary)] text-white ring-2 ring-[var(--button-primary)] ring-opacity-50"
                           : action.variant === "primary"
                             ? "bg-[var(--button-primary)] text-white hover:bg-[var(--button-primary-hover)]"
@@ -1203,17 +1224,21 @@ export default function CampaignChat() {
                               : "text-[var(--sidebar-foreground)] hover:bg-[var(--nav-hover)]"
                           }`}
                       >
-                        <Icon className="h-4 w-4" />
+                        <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
                       </button>
                     );
                   })}
 
                   <button
                     type="submit"
-                    className="ml-auto h-8 px-3 py-1 rounded-full bg-[var(--button-primary)] text-white text-sm hover:bg-[var(--button-primary-hover)] disabled:opacity-50 flex items-center transition-colors"
+                    className="ml-auto h-7 px-2 py-1 sm:h-8 sm:px-3 sm:py-1 rounded-full bg-[var(--button-primary)] text-white text-xs sm:text-sm hover:bg-[var(--button-primary-hover)] disabled:opacity-50 flex items-center transition-colors"
                     disabled={!inputValue.trim() || isGenerating || selectedSources.length === 0 || selectedChannels.length === 0}
                   >
-                    {isGenerating ? 'Generating...' : 'Generate'}
+                    {isGenerating ? (
+                      <span className="text-xs sm:text-sm">Generating...</span>
+                    ) : (
+                      <span className="text-xs sm:text-sm">Generate</span>
+                    )}
                   </button>
                 </div>
               </div>
