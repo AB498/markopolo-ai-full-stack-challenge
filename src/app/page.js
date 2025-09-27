@@ -1070,6 +1070,11 @@ export default function CampaignChat() {
                   </a>
                 </li>
                 <li>
+                  <a href="/streaming-demo" className="block py-2 px-3 rounded-md hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)]">
+                    Streaming Demo
+                  </a>
+                </li>
+                <li>
                   <a href="#" className="block py-2 px-3 rounded-md hover:bg-[var(--nav-hover)] text-[var(--sidebar-foreground)]">
                     Settings
                   </a>
